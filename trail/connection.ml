@@ -39,12 +39,16 @@ let register_before_send fn t =
 let with_header header value t =
   { t with headers = Http.Header.add t.headers header value }
 
+let with_body body t = { t with body }
+
+let with_status status t = { t with status }
+
 let respond ~status ?(body = "") t =
   let body =
     if body = "" then Bigstringaf.empty
     else Bigstringaf.of_string ~off:0 ~len:(String.length body) body
   in
-  { t with status; body }
+  t |> with_status status |> with_body body
 
 let send ({ adapter; socket; req; status; headers; body; _ } as t) =
   run_callbacks t.before_send_cbs t;

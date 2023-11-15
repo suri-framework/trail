@@ -59,6 +59,12 @@ module Conn : sig
       will have this header set.
   *)
 
+  val with_body : Bigstringaf.t -> t -> t
+  (** `with_body body conn` will set the response body to `body` *)
+
+  val with_status : Http.Status.t -> t -> t
+  (** `with_status status conn` will set the response status to `status` *)
+
   val respond : status:Http.Status.t -> ?body:string -> t -> t
   (** Set the status code and optionally the response body for a connection. *)
 
