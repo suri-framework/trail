@@ -1,7 +1,7 @@
 type trail = Connection.t -> Connection.t
 type t = trail list
 
-let rec run_pipeline t (conn : Connection.t) =
+let rec run_pipeline t conn =
   match t with
   | [] -> conn
   | trail :: t ->
