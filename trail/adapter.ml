@@ -1,6 +1,6 @@
 module type Intf = sig
   val send :
-    Caravan.Socket.t ->
+    Atacama.Socket.t ->
     Http.Request.t ->
     Http.Status.t ->
     Http.Header.t ->

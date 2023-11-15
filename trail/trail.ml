@@ -9,8 +9,8 @@ let handler adapter pipeline ctx socket req =
 
 let start_link ~port ?(adapter = (module Nomad_adapter : Adapter.Intf)) pipeline
     ctx =
-  Caravan.start_link ~port
-    (module Nomad.Caravan_handler)
+  Atacama.start_link ~port
+    (module Nomad.Atacama_handler)
     { buffer = Bigstringaf.empty; handler = handler adapter pipeline ctx }
 
 module Logger = Logger

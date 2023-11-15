@@ -8,7 +8,7 @@ type t = {
   meth : Http.Method.t;
   headers : Http.Header.t;
   req : Http.Request.t;
-  socket : Caravan.Socket.t;
+  socket : Atacama.Socket.t;
   status : Http.Status.t;
   before_send_cbs : (t -> unit) list;
 }

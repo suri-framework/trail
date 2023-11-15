@@ -21,7 +21,7 @@
    (ocaml (>= "5.0.0"))
    riot
    nomad
-   caravan
+   atacama
    (uuidm (>= "0.9.8"))
    dune)
  (tags

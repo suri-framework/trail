@@ -8,7 +8,7 @@ type t = {
   meth : Http.Method.t;
   headers : Http.Header.t;
   req : Http.Request.t;
-  socket : Caravan.Socket.t;
+  socket : Atacama.Socket.t;
   status : Http.Status.t;
   before_send_cbs : (t -> unit) list;
 }
@@ -16,7 +16,7 @@ type t = {
 type status
 type body
 
-val make : Adapter.t -> Caravan.Socket.t -> Http.Request.t -> t
+val make : Adapter.t -> Atacama.Socket.t -> Http.Request.t -> t
 val halted : t -> bool
 val run_callbacks : ('a -> unit) list -> 'a -> unit
 val register_before_send : (t -> unit) -> t -> t
