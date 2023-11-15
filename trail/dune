@@ -1,0 +1,4 @@
+(library
+ (public_name trail)
+ (name trail)
+ (libraries riot nomad telemetry ptime uuidm))

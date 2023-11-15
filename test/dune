@@ -1,0 +1,3 @@
+(test
+ (name pipeline_test)
+ (libraries trail nomad riot telemetry))
