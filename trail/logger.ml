@@ -1,7 +1,11 @@
 open Riot
 open Connection
 
-let run conn _ctx =
+type args = { level : Riot__.Logger.level }
+
+let init args = args
+
+let run conn _args =
   Logger.info (fun f -> f "%a %s" Http.Method.pp conn.meth conn.path);
   let start_time = Ptime_clock.now () in
   conn

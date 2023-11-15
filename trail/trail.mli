@@ -77,7 +77,6 @@ module Conn : sig
 
   val send_response : status:Http.Status.t -> ?body:string -> t -> t
   (** Convenience function to set a response and send it in one go. *)
-
 end
 
 type 'ctx opts = { ctx : 'ctx }
@@ -87,8 +86,10 @@ type 'ctx trail = Conn.t -> 'ctx opts -> Conn.t
     produce a new connection object.
 *)
 
-type 'a t = [] : 'ctx t | ( :: ) : 'ctx trail * 'ctx t -> 'ctx t
-(** The `Trail.t` is the type of the trail _pipelines_.
+type 'a t =
+  | [] : 'ctx t
+  | ( :: ) : 'ctx trail * 'ctx t -> 'ctx t
+      (** The `Trail.t` is the type of the trail _pipelines_.
 
     You can create new pipelines by using the syntax:
 
@@ -104,6 +105,15 @@ type 'a t = [] : 'ctx t | ( :: ) : 'ctx trail * 'ctx t -> 'ctx t
 
  *)
 
+module type Intf = sig
+  type args
+
+  val init : args -> args
+  val run : Connection.t -> args -> Connection.t
+end
+
+val trail : (module Intf with type args = 'args) -> 'args -> 'ctx trail
+
 val start_link :
   port:int ->
   ?adapter:Adapter.t ->
@@ -113,9 +123,14 @@ val start_link :
 (** Starts a `Trail` supervision tree. *)
 
 module Logger : sig
-  val run : 'ctx trail
+  type args = { level : Riot__.Logger.level }
 end
 
+val logger : Logger.args -> 'ctx trail
+
 module Request_id : sig
-  val run : 'ctx trail
+  type id_kind = Uuid_v4
+  type args = { kind : id_kind }
 end
+
+val request_id : Request_id.args -> 'ctx trail

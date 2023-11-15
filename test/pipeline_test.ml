@@ -5,8 +5,8 @@ open Riot
 let trail =
   Trail.
     [
-      Logger.run;
-      Request_id.run;
+      logger { level = Debug };
+      request_id { kind = Uuid_v4 };
       (fun conn _ctx -> Conn.send_response ~status:`OK ~body:"hello world" conn);
     ]
 

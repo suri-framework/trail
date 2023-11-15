@@ -1,6 +1,13 @@
 open Connection
 
-let run conn _ctx =
+type id_kind = Uuid_v4
+type args = { kind : id_kind }
+
+let init args = args
+
+let run conn args =
   let rnd = Riot.random () in
-  let req_id = Uuidm.(v4_gen rnd () |> to_string) in
+  let req_id =
+    match args.kind with Uuid_v4 -> Uuidm.(v4_gen rnd () |> to_string)
+  in
   conn |> with_header "x-request-id" req_id

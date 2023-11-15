@@ -23,7 +23,4 @@ val register_before_send : (t -> unit) -> t -> t
 val with_header : string -> string -> t -> t
 val respond : status:Http.Status.t -> ?body:string -> t -> t
 val send : t -> t
-
-val send_response :
-  status:Http.Status.t -> ?body:string -> t -> t
-
+val send_response : status:Http.Status.t -> ?body:string -> t -> t
