@@ -5,22 +5,21 @@ provides its users with a small set of abstractions for building _trails_ that
 can be assembled to handle a request.
 
 To create a Trail, you can use the syntax `Trail.[fn1;fn2;fn3;...]`, where each
-function takes a connection object and an arbitrary context, to produce a new
-connection object.
+function takes a connection object and produces a new connection object.
 
 For example:
 
 ```ocaml
 Trail.[
-  Logger.run;
-  Request_id.run;
-  Cqrs_token.run;
-  Session.run;
+  logger {level=Debug};
+  request_id {kind=Uuid_v4};
+  cqrs_token ();
+  session {salt="3FBYQ5+B"};
   (fun conn req -> conn |> send_resp ~status:`OK ~body:"hello world!");
 ]
 ```
 
-Trail also comes with support for [Riot][riot], and to start a Trail supervision tree you can call `Trail.start_link ~port trail ctx`.
+Trail also comes with support for [Riot][riot], and to start a Trail supervision tree you can call `Trail.start_link ~port trail`.
 
 [riot]: https://github.com/leostera/riot
 [plug]: https://hexdocs.pm/plug/readme.html
@@ -79,17 +78,13 @@ module Conn : sig
   (** Convenience function to set a response and send it in one go. *)
 end
 
-type 'ctx opts = { ctx : 'ctx }
-
-type 'ctx trail = Conn.t -> 'ctx opts -> Conn.t
+type trail = Conn.t -> Conn.t
 (** A trail is a function that given a connection and some options, will
     produce a new connection object.
 *)
 
-type 'a t =
-  | [] : 'ctx t
-  | ( :: ) : 'ctx trail * 'ctx t -> 'ctx t
-      (** The `Trail.t` is the type of the trail _pipelines_.
+type t = trail list
+(** The `Trail.t` is the type of the trail _pipelines_.
 
     You can create new pipelines by using the syntax:
 
@@ -112,13 +107,12 @@ module type Intf = sig
   val run : Connection.t -> args -> Connection.t
 end
 
-val trail : (module Intf with type args = 'args) -> 'args -> 'ctx trail
+val trail : (module Intf with type args = 'args) -> 'args -> trail
 
 val start_link :
   port:int ->
   ?adapter:Adapter.t ->
-  'a t ->
-  'a ->
+  t ->
   (Riot.Pid.t, [> `Supervisor_error ]) result
 (** Starts a `Trail` supervision tree. *)
 
@@ -126,11 +120,11 @@ module Logger : sig
   type args = { level : Riot__.Logger.level }
 end
 
-val logger : Logger.args -> 'ctx trail
+val logger : Logger.args -> trail
 
 module Request_id : sig
   type id_kind = Uuid_v4
   type args = { kind : id_kind }
 end
 
-val request_id : Request_id.args -> 'ctx trail
+val request_id : Request_id.args -> trail

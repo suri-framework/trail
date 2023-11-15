@@ -4,7 +4,7 @@ let trail =
   Trail.
     [
       logger { level = Debug };
-      (fun conn _ctx -> Conn.send_response ~status:`OK ~body:"hello world" conn);
+      (fun conn -> Conn.send_response ~status:`OK ~body:"hello world" conn);
     ]
 
 [@@@warning "-8"]
@@ -15,6 +15,6 @@ let () =
   let (Ok _) = Logger.start () in
   sleep 0.1;
   let port = 2112 in
-  let (Ok pid) = Trail.start_link ~port trail 0 in
+  let (Ok pid) = Trail.start_link ~port trail in
   Logger.info (fun f -> f "Listening on 0.0.0.0:%d" port);
   wait_pids [ pid ]

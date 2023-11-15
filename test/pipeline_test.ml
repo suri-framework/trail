@@ -7,7 +7,7 @@ let trail =
     [
       logger { level = Debug };
       request_id { kind = Uuid_v4 };
-      (fun conn _ctx -> Conn.send_response ~status:`OK ~body:"hello world" conn);
+      (fun conn -> Conn.send_response ~status:`OK ~body:"hello world" conn);
     ]
 
 let main () =
@@ -15,7 +15,7 @@ let main () =
   let (Ok _) = Logger.start () in
   sleep 0.1;
   Logger.info (fun f -> f "starting nomad caravan");
-  let (Ok pid) = Trail.start_link ~port:2112 trail 0 in
+  let (Ok pid) = Trail.start_link ~port:2112 trail in
   wait_pids [ pid ]
 
 let () = Riot.run @@ main
