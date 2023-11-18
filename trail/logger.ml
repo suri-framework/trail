@@ -1,7 +1,7 @@
 open Riot
 open Connection
 
-type args = { level : Riot__.Logger.level }
+type args = { level : Logger.level }
 
 let init args = args
 

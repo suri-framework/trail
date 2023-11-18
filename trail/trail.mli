@@ -25,6 +25,8 @@ Trail also comes with support for [Riot][riot], and to start a Trail supervision
 [plug]: https://hexdocs.pm/plug/readme.html
 *)
 
+open Riot
+
 (** The `Conn` module includes functions for handling an ongoing connection. *)
 module Conn : sig
   type t = {
@@ -123,7 +125,7 @@ val start_link :
 (** Starts a `Trail` supervision tree. *)
 
 module Logger : sig
-  type args = { level : Riot__.Logger.level }
+  type args = { level : Logger.level }
 end
 
 val logger : Logger.args -> trail
