@@ -1,10 +1,12 @@
+open Riot
+
 module type Intf = sig
   val send :
     Atacama.Socket.t ->
     Http.Request.t ->
     Http.Status.t ->
     Http.Header.t ->
-    Bigstringaf.t ->
+    IO.Buffer.t ->
     unit
 end
 

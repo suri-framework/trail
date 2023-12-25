@@ -1,8 +1,10 @@
+open Riot
+
 exception Connection_should_be_closed
 
 type t = {
   adapter : Adapter.t;
-  body : Bigstringaf.t;
+  body : IO.Buffer.t;
   halted : bool;
   path : string;
   meth : Http.Method.t;
@@ -19,7 +21,7 @@ type body
 let make adapter socket req =
   {
     adapter;
-    body = Bigstringaf.empty;
+    body = IO.Buffer.with_capacity 1024;
     halted = false;
     headers = Http.Header.init ();
     req;
@@ -39,16 +41,13 @@ let register_before_send fn t =
 let with_header header value t =
   { t with headers = Http.Header.add t.headers header value }
 
-let with_body body t = { t with body }
+let with_body body t =
+  let len = String.length body in
+  let body = if len > 0 then IO.Buffer.of_string body else t.body in
+  { t with body }
 
 let with_status status t = { t with status }
-
-let respond ~status ?(body = "") t =
-  let body =
-    if body = "" then Bigstringaf.empty
-    else Bigstringaf.of_string ~off:0 ~len:(String.length body) body
-  in
-  t |> with_status status |> with_body body
+let respond ~status ?(body = "") t = t |> with_status status |> with_body body
 
 let send ({ adapter; socket; req; status; headers; body; _ } as t) =
   run_callbacks t.before_send_cbs t;

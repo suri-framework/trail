@@ -31,7 +31,7 @@ open Riot
 module Conn : sig
   type t = {
     adapter : Adapter.t;
-    body : Bigstringaf.t;
+    body : IO.Buffer.t;
     halted : bool;
     path : string;
     meth : Http.Method.t;
@@ -61,7 +61,7 @@ module Conn : sig
       will have this header set.
   *)
 
-  val with_body : Bigstringaf.t -> t -> t
+  val with_body : string -> t -> t
   (** `with_body body conn` will set the response body to `body` *)
 
   val with_status : Http.Status.t -> t -> t

@@ -21,7 +21,10 @@ let start_link ~port ?(adapter = (module Nomad_adapter : Adapter.Intf)) pipeline
     =
   Atacama.start_link ~port
     (module Nomad.Atacama_handler)
-    { buffer = Bigstringaf.empty; handler = handler adapter pipeline }
+    {
+      parser = Nomad.Atacama_handler.http1 ();
+      handler = handler adapter pipeline;
+    }
 
 module Logger = Logger
 
