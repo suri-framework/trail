@@ -1,34 +1,33 @@
+module Sock = Sock
+module Frame = Frame
+module Request = Request
+module Response = Response
 module Conn = Connection
 include Pipeline
 
 module type Intf = sig
   type args
+  type state
 
-  val init : args -> args
-  val run : Conn.t -> args -> Conn.t
+  val init : args -> state
+  val call : Conn.t -> state -> Conn.t
 end
 
 let trail (type args) (module T : Intf with type args = args) (args : args) =
   let args = T.init args in
-  fun conn -> T.run conn args
+  fun conn -> T.call conn args
 
-let handler adapter pipeline socket req =
-  let conn = Connection.make adapter socket req in
+let handler pipeline socket (req : Request.t) =
+  let conn = Conn.make socket req in
   let conn = Pipeline.run conn pipeline in
-  if Conn.halted conn then () else raise Connection.Connection_should_be_closed
 
-let start_link ~port ?(adapter = (module Nomad_adapter : Adapter.Intf)) pipeline
-    =
-  Atacama.start_link ~port
-    (module Nomad.Atacama_handler)
-    {
-      parser = Nomad.Atacama_handler.http1 ();
-      handler = handler adapter pipeline;
-    }
+  if not (Conn.halted conn) then raise Conn.Connection_should_be_closed;
 
-module Logger = Logger
+  match Conn.switch conn with Some switch -> `upgrade switch | None -> `close
 
-let logger args = trail (module Logger) args
+module Req_logger = Req_logger
+
+let logger ~level () = trail (module Req_logger) (Req_logger.make ~level ())
 
 module Request_id = Request_id
 

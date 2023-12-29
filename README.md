@@ -1,8 +1,9 @@
 # Trail 
 
-Trail is a minimalistic, composable framework for building HTTP/S servers,
-inspired by [Plug][plug]. It provides its users with a small set of
-abstractions for building _trails_ that can be assembled to handle a request.
+Trail is a minimalistic, composable framework for building HTTP/WebSocket
+servers, inspired by [Plug][plug] & [WebSock][websock]. It provides its users
+with a small set of abstractions for building _trails_ that can be assembled to
+handle a request.
 
 To create a Trail, you can use the syntax `Trail.[fn1;fn2;fn3;...]`, where each
 function takes a connection object and an arbitrary context, to produce a new

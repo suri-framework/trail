@@ -12,8 +12,9 @@ depends: [
   "dune" {>= "3.10"}
   "ocaml" {>= "5.1.0"}
   "riot"
-  "nomad"
   "atacama"
+  "http"
+  "httpaf"
   "uuidm" {>= "0.9.8"}
   "odoc" {with-doc}
 ]

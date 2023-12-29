@@ -18,11 +18,14 @@
  (synopsis "A short synopsis")
  (description "A longer description")
  (depends
-   (ocaml (>= "5.1.0"))
-   riot
-   nomad
-   atacama
-   (uuidm (>= "0.9.8")))
+  (ocaml
+   (>= "5.1.0"))
+  riot
+  atacama
+  http
+  httpaf
+  (uuidm
+   (>= "0.9.8")))
  (tags
   (topics "to describe" your project)))
 

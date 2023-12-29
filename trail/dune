@@ -1,4 +1,6 @@
 (library
  (public_name trail)
  (name trail)
- (libraries riot nomad telemetry ptime uuidm))
+ (preprocess
+  (pps ppx_bitstring))
+ (libraries riot atacama telemetry bitstring ptime uuidm http httpaf))

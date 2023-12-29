@@ -3,7 +3,7 @@ open Riot
 let trail =
   Trail.
     [
-      logger { level = Debug };
+      logger ~level:Debug ();
       (fun conn -> Conn.send_response ~status:`OK ~body:"hello world" conn);
     ]
 
@@ -15,6 +15,6 @@ let () =
   let (Ok _) = Logger.start () in
   sleep 0.1;
   let port = 2112 in
-  let (Ok pid) = Trail.start_link ~port trail in
+  let (Ok pid) = Nomad.start_link ~port trail in
   Logger.info (fun f -> f "Listening on 0.0.0.0:%d" port);
   wait_pids [ pid ]
