@@ -120,6 +120,79 @@ module Response : sig
 
   val pp : Format.formatter -> t -> unit
   val to_buffer : ?body:IO.Buffer.t -> t -> IO.Buffer.t
+
+  type response =
+    ?headers:(string * string) list -> ?version:Http.Version.t -> unit -> t
+
+  val accepted : response
+  val already_reported : response
+  val bad_gateway : response
+  val bad_request : response
+  val bandwidth_limit_exceeded : response
+  val blocked_by_windows_parental_controls : response
+  val checkpoint : response
+  val client_closed_request : response
+  val conflict : response
+  val continue : response
+  val created : response
+  val enhance_your_calm : response
+  val expectation_failed : response
+  val failed_dependency : response
+  val forbidden : response
+  val found : response
+  val gateway_timeout : response
+  val gone : response
+  val http_version_not_supported : response
+  val im_a_teapot : response
+  val im_used : response
+  val insufficient_storage : response
+  val internal_server_error : response
+  val length_required : response
+  val locked : response
+  val loop_detected : response
+  val method_not_allowed : response
+  val moved_permanently : response
+  val multi_status : response
+  val multiple_choices : response
+  val network_authentication_required : response
+  val network_connect_timeout_error : response
+  val network_read_timeout_error : response
+  val no_content : response
+  val no_response : response
+  val non_authoritative_information : response
+  val not_acceptable : response
+  val not_extended : response
+  val not_found : response
+  val not_implemented : response
+  val not_modified : response
+  val ok : response
+  val partial_content : response
+  val payment_required : response
+  val permanent_redirect : response
+  val precondition_failed : response
+  val precondition_required : response
+  val processing : response
+  val proxy_authentication_required : response
+  val request_entity_too_large : response
+  val request_header_fields_too_large : response
+  val request_timeout : response
+  val request_uri_too_long : response
+  val requested_range_not_satisfiable : response
+  val reset_content : response
+  val retry_with : response
+  val see_other : response
+  val service_unavailable : response
+  val switch_proxy : response
+  val switching_protocols : response
+  val temporary_redirect : response
+  val too_many_requests : response
+  val unauthorized : response
+  val unprocessable_entity : response
+  val unsupported_media_type : response
+  val upgrade_required : response
+  val use_proxy : response
+  val variant_also_negotiates : response
+  val wrong_exchange_server : response
 end
 
 module Request : sig
