@@ -27,6 +27,13 @@ let pp fmt ({ headers; meth; uri; version; _ } : t) =
   let req = Http.Request.make ~meth ~headers ~version (Uri.to_string uri) in
   Http.Request.pp fmt req
 
+let from_http req =
+  let meth = Http.Request.meth req in
+  let headers = Http.Request.headers req |> Http.Header.to_list in
+  let target = Http.Request.resource req in
+  let version = Http.Request.version req in
+  make ~meth ~version ~headers target
+
 let from_httpaf req =
   let open Httpaf.Request in
   let version =

@@ -215,6 +215,7 @@ module Request : sig
     string ->
     t
 
+  val from_http : Http.Request.t -> t
   val from_httpaf : Httpaf.Request.t -> t
   val pp : Format.formatter -> t -> unit
   val is_keep_alive : t -> bool
