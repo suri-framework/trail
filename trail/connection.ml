@@ -3,6 +3,7 @@ open Riot
 exception Connection_should_be_closed
 
 type t = {
+  adapter : Adapter.t;
   body : IO.Buffer.t;
   halted : bool;
   path : string;
@@ -18,8 +19,9 @@ type t = {
 type status
 type body
 
-let make conn (req : Request.t) =
+let make adapter conn (req : Request.t) =
   {
+    adapter;
     body = IO.Buffer.with_capacity 1024;
     halted = false;
     headers = [];
@@ -49,11 +51,10 @@ let with_body body t =
 let with_status status t = { t with status }
 let respond ~status ?(body = "") t = t |> with_status status |> with_body body
 
-let send ({ conn; status; headers; body; _ } as t) =
+let send ({ adapter = (module A); conn; req; status; headers; body; _ } as t) =
   run_callbacks t.before_send_cbs t;
-  let buf = Response.(make status ~headers () |> to_buffer ~body) in
-  Logger.debug (fun f -> f "res: %s" (IO.Buffer.to_string buf));
-  let _ = Atacama.Connection.send conn buf in
+  let res = Response.(make status ~body ~headers ()) in
+  let _ = A.send conn req res in
   { t with halted = true }
 
 let send_response status ?body t = respond t ~status ?body |> send

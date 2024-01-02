@@ -4,16 +4,17 @@ type t = {
   status : Http.Status.t;
   headers : Http.Header.t;
   version : Http.Version.t;
+  body : IO.Buffer.t option;
 }
 
-let pp fmt ({ headers; version; status } : t) =
+let pp fmt ({ headers; version; status; _ } : t) =
   let res = Http.Response.make ~headers ~version ~status () in
   Http.Response.pp fmt res
 
-let make status ?(headers = []) ?(version = `HTTP_1_1) () =
-  { status; version; headers = Http.Header.of_list headers }
+let make status ?(headers = []) ?(version = `HTTP_1_1) ?body () =
+  { status; version; headers = Http.Header.of_list headers; body }
 
-let to_buffer ?body { status; headers; version } =
+let to_buffer { status; headers; version; body } =
   let version = version |> Http.Version.to_string |> Httpaf.Version.of_string in
   let status = status |> Http.Status.to_int |> Httpaf.Status.of_code in
 
@@ -47,7 +48,11 @@ let to_buffer ?body { status; headers; version } =
   IO.Buffer.of_cstruct ~filled:len cs
 
 type response =
-  ?headers:(string * string) list -> ?version:Http.Version.t -> unit -> t
+  ?headers:(string * string) list ->
+  ?version:Http.Version.t ->
+  ?body:IO.Buffer.t ->
+  unit ->
+  t
 
 let accepted = make `Accepted
 let already_reported = make `Already_reported

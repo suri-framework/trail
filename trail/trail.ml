@@ -1,3 +1,4 @@
+module Adapter = Adapter
 module Sock = Sock
 module Frame = Frame
 module Request = Request
@@ -17,8 +18,8 @@ let trail (type args) (module T : Intf with type args = args) (args : args) =
   let args = T.init args in
   fun conn -> T.call conn args
 
-let handler pipeline socket (req : Request.t) =
-  let conn = Conn.make socket req in
+let handler adapter pipeline socket (req : Request.t) =
+  let conn = Conn.make adapter socket req in
   let conn = Pipeline.run conn pipeline in
 
   if not (Conn.halted conn) then raise Conn.Connection_should_be_closed;

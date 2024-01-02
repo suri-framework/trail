@@ -109,20 +109,26 @@ module Response : sig
     status : Http.Status.t;
     headers : Http.Header.t;
     version : Http.Version.t;
+    body : IO.Buffer.t option;
   }
 
   val make :
     Http.Status.t ->
     ?headers:(string * string) list ->
     ?version:Http.Version.t ->
+    ?body:IO.Buffer.t ->
     unit ->
     t
 
   val pp : Format.formatter -> t -> unit
-  val to_buffer : ?body:IO.Buffer.t -> t -> IO.Buffer.t
+  val to_buffer : t -> IO.Buffer.t
 
   type response =
-    ?headers:(string * string) list -> ?version:Http.Version.t -> unit -> t
+    ?headers:(string * string) list ->
+    ?version:Http.Version.t ->
+    ?body:IO.Buffer.t ->
+    unit ->
+    t
 
   val accepted : response
   val already_reported : response
@@ -221,9 +227,18 @@ module Request : sig
   val is_keep_alive : t -> bool
 end
 
+module Adapter : sig
+  module type Intf = sig
+    val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
+  end
+
+  type t = (module Intf)
+end
+
 (** The `Conn` module includes functions for handling an ongoing connection. *)
 module Conn : sig
   type t = {
+    adapter : Adapter.t;
     body : IO.Buffer.t;
     halted : bool;
     path : string;
@@ -331,6 +346,7 @@ end
 val request_id : Request_id.args -> trail
 
 val handler :
+  Adapter.t ->
   (Conn.t -> Conn.t) list ->
   Atacama.Connection.t ->
   Request.t ->
