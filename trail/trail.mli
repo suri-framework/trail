@@ -130,6 +130,8 @@ module Request : sig
     version : Http.Version.t;
     encoding : Http.Transfer.encoding;
     body : IO.Buffer.t option;
+    path : string list;
+    query : (string * string list) list;
   }
 
   val make :

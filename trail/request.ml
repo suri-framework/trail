@@ -7,13 +7,21 @@ type t = {
   version : Http.Version.t;
   encoding : Http.Transfer.encoding;
   body : IO.Buffer.t option;
+  path : string list;
+  query : (string * string list) list;
 }
 
 let make ?body ?(meth = `GET) ?(version = `HTTP_1_1) ?(headers = []) uri =
   let uri = Uri.of_string uri in
   let headers = Http.Header.of_list headers in
   let encoding = Http.Header.get_transfer_encoding headers in
-  { headers; uri; meth; version; encoding; body }
+  let path =
+    match Uri.path uri |> String.split_on_char '/' with
+    | "" :: path -> path
+    | path -> path
+  in
+  let query = Uri.query uri in
+  { headers; uri; meth; version; encoding; body; path; query }
 
 let pp fmt ({ headers; meth; uri; version; _ } : t) =
   let req = Http.Request.make ~meth ~headers ~version (Uri.to_string uri) in
@@ -24,11 +32,9 @@ let from_httpaf req =
   let version =
     Httpaf.Version.to_string req.version |> Http.Version.of_string
   in
-  let headers = Httpaf.Headers.to_list req.headers |> Http.Header.of_list in
+  let headers = Httpaf.Headers.to_list req.headers in
   let meth = (req.meth :> Http.Method.t) in
-  let encoding = Http.Header.get_transfer_encoding headers in
-  let uri = Uri.of_string req.target in
-  { body = None; headers; meth; uri; version; encoding }
+  make ~meth ~version ~headers req.target
 
 let is_keep_alive t =
   match Http.Header.connection t.headers with
