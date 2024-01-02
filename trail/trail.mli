@@ -231,6 +231,16 @@ module Adapter : sig
   module type Intf = sig
     val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
     val send_chunk : Atacama.Connection.t -> Request.t -> IO.Buffer.t -> unit
+
+    val send_file :
+      Atacama.Connection.t ->
+      Request.t ->
+      Response.t ->
+      ?off:int ->
+      ?len:int ->
+      path:string ->
+      unit ->
+      unit
   end
 
   type t = (module Intf)
@@ -303,6 +313,11 @@ module Conn : sig
 
   val chunk : string -> t -> t
   (** [chunk data conn] will send data to the streamed connection.
+  *)
+
+  val send_file : Http.Status.t -> ?off:int -> ?len:int -> string -> t -> t
+  (** [send_file code path conn] sets up the connection [conn] and transfers
+      the file at [path] with status code [code].
   *)
 
   val upgrade : [ `h2c | `websocket of Sock.upgrade_opts * Sock.t ] -> t -> t

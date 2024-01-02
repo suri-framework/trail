@@ -59,6 +59,12 @@ let send ({ adapter = (module A); conn; req; status; headers; body; _ } as t) =
 
 let send_response status ?body t = respond t ~status ?body |> send
 
+let send_file status ?off ?len path
+    ({ adapter = (module A); conn; req; _ } as t) =
+  let res = Response.(make status ~headers:t.headers ()) in
+  let _ = A.send_file conn req res ?off ?len ~path () in
+  { t with halted = true }
+
 let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
   let t =
     t |> with_header "transfer-encoding" "chunked" |> with_status status
