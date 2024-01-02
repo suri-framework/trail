@@ -53,20 +53,20 @@ let respond ~status ?(body = "") t = t |> with_status status |> with_body body
 
 let send ({ adapter = (module A); conn; req; status; headers; body; _ } as t) =
   run_callbacks t.before_send_cbs t;
-  let res = Response.(make status ~body ~headers ()) in
+  let res = Response.(make status ~version:req.version ~body ~headers ()) in
   let _ = A.send conn req res in
   { t with halted = true }
 
 let send_response status ?body t = respond t ~status ?body |> send
 
 let inform status headers ({ adapter = (module A); conn; req; _ } as t) =
-  let res = Response.(make status ~headers ()) in
+  let res = Response.(make status ~version:req.version ~headers ()) in
   let _ = A.send conn req res in
   t
 
 let send_file status ?off ?len path
     ({ adapter = (module A); conn; req; _ } as t) =
-  let res = Response.(make status ~headers:t.headers ()) in
+  let res = Response.(make status ~version:req.version ~headers:t.headers ()) in
   let _ = A.send_file conn req res ?off ?len ~path () in
   { t with halted = true }
 
@@ -74,7 +74,9 @@ let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
   let t =
     t |> with_header "transfer-encoding" "chunked" |> with_status status
   in
-  let res = Response.(make t.status ~headers:t.headers ()) in
+  let res =
+    Response.(make t.status ~version:req.version ~headers:t.headers ())
+  in
   let _ = A.send conn req res in
   t
 
