@@ -44,8 +44,6 @@ let from_httpaf req =
   make ~meth ~version ~headers req.target
 
 let is_keep_alive t =
-  match Http.Header.connection t.headers with
-  | Some `Close -> false
-  | Some `Keep_alive -> true
-  | Some (`Unknown _) -> false
-  | None -> Http.Version.compare t.version `HTTP_1_1 = 0
+  match Http.Header.get t.headers "connection" with
+  | Some "keep_alive" -> true
+  | _ -> false
