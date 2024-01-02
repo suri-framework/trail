@@ -58,5 +58,18 @@ let send ({ adapter = (module A); conn; req; status; headers; body; _ } as t) =
   { t with halted = true }
 
 let send_response status ?body t = respond t ~status ?body |> send
+
+let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
+  let t =
+    t |> with_header "transfer-encoding" "chunked" |> with_status status
+  in
+  let res = Response.(make t.status ~headers:t.headers ()) in
+  let _ = A.send conn req res in
+  { t with halted = false }
+
+let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
+  let _ = A.send_chunk conn req (IO.Buffer.of_string chunk) in
+  t
+
 let upgrade switch t = { t with switch = Some switch; halted = true }
 let switch t = t.switch

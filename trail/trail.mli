@@ -230,6 +230,7 @@ end
 module Adapter : sig
   module type Intf = sig
     val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
+    val send_chunk : Atacama.Connection.t -> Request.t -> IO.Buffer.t -> unit
   end
 
   type t = (module Intf)
@@ -293,6 +294,16 @@ module Conn : sig
 
   val send_response : Http.Status.t -> ?body:string -> t -> t
   (** Convenience function to set a response and send it in one go. *)
+
+  val send_chunked : Http.Status.t -> t -> t
+  (** [send_chunked `OK conn] initializes a stream response in the connection.
+      
+      You can use the [chunk data conn] function to send more data.
+  *)
+
+  val chunk : string -> t -> t
+  (** [chunk data conn] will send data to the streamed connection.
+  *)
 
   val upgrade : [ `h2c | `websocket of Sock.upgrade_opts * Sock.t ] -> t -> t
   (** [upgrade p conn] upgrades the connection [conn] to the new protocol [p].
