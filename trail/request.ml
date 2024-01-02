@@ -1,16 +1,19 @@
+open Riot
+
 type t = {
   headers : Http.Header.t;
   meth : Http.Method.t;
   uri : Uri.t;
   version : Http.Version.t;
   encoding : Http.Transfer.encoding;
+  body : IO.Buffer.t option;
 }
 
-let make ?(meth = `GET) ?(version = `HTTP_1_1) ?(headers = []) uri =
+let make ?body ?(meth = `GET) ?(version = `HTTP_1_1) ?(headers = []) uri =
   let uri = Uri.of_string uri in
   let headers = Http.Header.of_list headers in
   let encoding = Http.Header.get_transfer_encoding headers in
-  { headers; uri; meth; version; encoding }
+  { headers; uri; meth; version; encoding; body }
 
 let pp fmt ({ headers; meth; uri; version; _ } : t) =
   let req = Http.Request.make ~meth ~headers ~version (Uri.to_string uri) in
@@ -25,7 +28,7 @@ let from_httpaf req =
   let meth = (req.meth :> Http.Method.t) in
   let encoding = Http.Header.get_transfer_encoding headers in
   let uri = Uri.of_string req.target in
-  { headers; meth; uri; version; encoding }
+  { body = None; headers; meth; uri; version; encoding }
 
 let is_keep_alive t =
   match Http.Header.connection t.headers with

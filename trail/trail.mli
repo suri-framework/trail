@@ -129,15 +129,18 @@ module Request : sig
     uri : Uri.t;
     version : Http.Version.t;
     encoding : Http.Transfer.encoding;
+    body : IO.Buffer.t option;
   }
 
   val make :
+    ?body:IO.Buffer.t ->
     ?meth:Http.Method.t ->
     ?version:Http.Version.t ->
     ?headers:(string * string) list ->
     string ->
     t
 
+  val from_httpaf : Httpaf.Request.t -> t
   val pp : Format.formatter -> t -> unit
   val is_keep_alive : t -> bool
 end
