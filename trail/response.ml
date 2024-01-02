@@ -24,7 +24,7 @@ let to_buffer { status; headers; version; body } =
     | Some body, None ->
         let content_length =
           Http.Header.get headers "content-length"
-          |> Option.value ~default:(IO.Buffer.length body |> Int.to_string)
+          |> Option.value ~default:(IO.Buffer.filled body |> Int.to_string)
         in
         Http.Header.add headers "content-length" content_length
     | _ -> headers
@@ -37,9 +37,7 @@ let to_buffer { status; headers; version; body } =
   Httpaf.Httpaf_private.Serialize.write_response buf res;
 
   (match body with
-  | Some body ->
-      let Cstruct.{ buffer = ba; len; off } = IO.Buffer.as_cstruct body in
-      Faraday.write_bigstring buf ~off ~len ba
+  | Some body -> Faraday.write_string buf (IO.Buffer.to_string body)
   | None -> ());
 
   let ba = Faraday.serialize_to_bigstring buf in
