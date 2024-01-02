@@ -65,11 +65,12 @@ let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
   in
   let res = Response.(make t.status ~headers:t.headers ()) in
   let _ = A.send conn req res in
-  { t with halted = false }
+  t
 
 let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
   let _ = A.send_chunk conn req (IO.Buffer.of_string chunk) in
   t
 
+let close t = { t with halted = true }
 let upgrade switch t = { t with switch = Some switch; halted = true }
 let switch t = t.switch

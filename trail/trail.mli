@@ -308,6 +308,9 @@ module Conn : sig
   val upgrade : [ `h2c | `websocket of Sock.upgrade_opts * Sock.t ] -> t -> t
   (** [upgrade p conn] upgrades the connection [conn] to the new protocol [p].
    *)
+
+  val close : t -> t
+  (** [close conn] will mark this connection as closed. *)
 end
 
 type trail = Conn.t -> Conn.t
