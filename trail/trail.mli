@@ -320,6 +320,11 @@ module Conn : sig
       the file at [path] with status code [code].
   *)
 
+  val inform : Http.Status.t -> (string * string) list -> t -> t
+  (** [inform status headers] sends an information message back to the client
+      and does not close the connection.
+  *)
+
   val upgrade : [ `h2c | `websocket of Sock.upgrade_opts * Sock.t ] -> t -> t
   (** [upgrade p conn] upgrades the connection [conn] to the new protocol [p].
    *)

@@ -59,6 +59,11 @@ let send ({ adapter = (module A); conn; req; status; headers; body; _ } as t) =
 
 let send_response status ?body t = respond t ~status ?body |> send
 
+let inform status headers ({ adapter = (module A); conn; req; _ } as t) =
+  let res = Response.(make status ~headers ()) in
+  let _ = A.send conn req res in
+  t
+
 let send_file status ?off ?len path
     ({ adapter = (module A); conn; req; _ } as t) =
   let res = Response.(make status ~headers:t.headers ()) in
