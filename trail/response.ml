@@ -38,8 +38,7 @@ let to_buffer { status; headers; version; body } =
   (match body with
   | Some body ->
       let Cstruct.{ buffer = ba; len; off } = IO.Buffer.as_cstruct body in
-      Faraday.write_bigstring buf ~off ~len ba;
-      Faraday.write_string buf "\n\n0\n\n"
+      Faraday.write_bigstring buf ~off ~len ba
   | None -> ());
 
   let ba = Faraday.serialize_to_bigstring buf in
