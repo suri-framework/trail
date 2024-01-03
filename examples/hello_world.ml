@@ -4,7 +4,7 @@ let trail =
   Trail.
     [
       logger ~level:Debug ();
-      (fun conn -> Conn.send_response ~status:`OK ~body:"hello world" conn);
+      (fun conn -> Conn.send_response `OK ~body:"hello world" conn);
     ]
 
 [@@@warning "-8"]

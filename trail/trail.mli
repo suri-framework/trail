@@ -202,15 +202,20 @@ module Response : sig
 end
 
 module Request : sig
+  type body_reader =
+    Atacama.Connection.t ->
+    [ `ok of IO.Buffer.t | `more of IO.Buffer.t | `error of IO.unix_error ]
+
   type t = {
+    body_remaining : int;
+    buffer : IO.Buffer.t;
+    encoding : Http.Transfer.encoding;
     headers : Http.Header.t;
     meth : Http.Method.t;
-    uri : Uri.t;
-    version : Http.Version.t;
-    encoding : Http.Transfer.encoding;
-    body : IO.Buffer.t option;
     path : string list;
     query : (string * string list) list;
+    uri : Uri.t;
+    version : Http.Version.t;
   }
 
   val make :
@@ -225,9 +230,25 @@ module Request : sig
   val from_httpaf : Httpaf.Request.t -> t
   val pp : Format.formatter -> t -> unit
   val is_keep_alive : t -> bool
+
+  exception Invalid_content_header
+
+  val content_length : t -> int option
+  val body_encoding : t -> Http.Transfer.encoding
 end
 
 module Adapter : sig
+  type read_result =
+    | Ok of Request.t * IO.Buffer.t
+    | More of Request.t * IO.Buffer.t
+    | Error of
+        Request.t
+        * [ `Excess_body_read
+          | `Closed
+          | `Process_down
+          | `Timeout
+          | IO.unix_error ]
+
   module type Intf = sig
     val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
     val send_chunk : Atacama.Connection.t -> Request.t -> IO.Buffer.t -> unit
@@ -241,6 +262,13 @@ module Adapter : sig
       path:string ->
       unit ->
       unit
+
+    val read_body :
+      ?limit:int ->
+      ?read_size:int ->
+      Atacama.Connection.t ->
+      Request.t ->
+      read_result
   end
 
   type t = (module Intf)
@@ -250,15 +278,15 @@ end
 module Conn : sig
   type t = {
     adapter : Adapter.t;
-    body : IO.Buffer.t;
-    halted : bool;
-    path : string;
-    meth : Http.Method.t;
-    headers : (string * string) list;
-    req : Request.t;
-    conn : Atacama.Connection.t;
-    status : Http.Status.t;
     before_send_cbs : (t -> unit) list;
+    conn : Atacama.Connection.t;
+    halted : bool;
+    headers : (string * string) list;
+    meth : Http.Method.t;
+    path : string;
+    req : Request.t;
+    resp_body : IO.Buffer.t;
+    status : Http.Status.t;
     switch : [ `websocket of Sock.upgrade_opts * Sock.t | `h2c ] option;
   }
   (** The core connection type.
@@ -313,6 +341,27 @@ module Conn : sig
 
   val chunk : string -> t -> t
   (** [chunk data conn] will send data to the streamed connection.
+  *)
+
+  type read_result =
+    | Ok of t * IO.Buffer.t
+    | More of t * IO.Buffer.t
+    | Error of
+        t
+        * [ `Excess_body_read
+          | `Closed
+          | `Process_down
+          | `Timeout
+          | IO.unix_error ]
+
+  val read_body : ?limit:int -> t -> read_result
+  (** [read_body ?limit conn] will do a read on the body and return a buffer
+      with it. If `limit` is set, the response will be at most of length
+      `limit`.
+
+      If there is no more to read, this returns a [Ok (conn, buf)].
+      If there is more to be read, this returns a [More (conn, buf)].
+      On errors, this returns an [Error (conn, reason)].
   *)
 
   val send_file : Http.Status.t -> ?off:int -> ?len:int -> string -> t -> t

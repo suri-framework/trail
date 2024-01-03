@@ -1,17 +1,41 @@
 open Riot
 
+type body_reader =
+  Atacama.Connection.t ->
+  [ `ok of IO.Buffer.t | `more of IO.Buffer.t | `error of IO.unix_error ]
+
 type t = {
+  body_remaining : int;
+  buffer : IO.Buffer.t;
+  encoding : Http.Transfer.encoding;
   headers : Http.Header.t;
   meth : Http.Method.t;
-  uri : Uri.t;
-  version : Http.Version.t;
-  encoding : Http.Transfer.encoding;
-  body : IO.Buffer.t option;
   path : string list;
   query : (string * string list) list;
+  uri : Uri.t;
+  version : Http.Version.t;
 }
 
-let make ?body ?(meth = `GET) ?(version = `HTTP_1_1) ?(headers = []) uri =
+module StringSet = Set.Make (String)
+
+exception Invalid_content_header
+
+let content_length req =
+  match Http.Header.get req.headers "content-length" with
+  | None -> None
+  | Some value -> (
+      let values =
+        String.split_on_char ',' value
+        |> List.map String.trim |> StringSet.of_list |> StringSet.to_list
+        |> List.map Int64.of_string_opt
+      in
+      match values with
+      | [ Some first ] when first > 0L -> Some (first |> Int64.to_int)
+      | _ :: _ -> raise Invalid_content_header
+      | _ -> None)
+
+let make ?(body = IO.Buffer.empty) ?(meth = `GET) ?(version = `HTTP_1_1)
+    ?(headers = []) uri =
   let uri = Uri.of_string uri in
   let headers = Http.Header.of_list headers in
   let encoding = Http.Header.get_transfer_encoding headers in
@@ -21,7 +45,21 @@ let make ?body ?(meth = `GET) ?(version = `HTTP_1_1) ?(headers = []) uri =
     | path -> path
   in
   let query = Uri.query uri in
-  { headers; uri; meth; version; encoding; body; path; query }
+  let req =
+    {
+      body_remaining = 0;
+      buffer = body;
+      encoding;
+      headers;
+      meth;
+      path;
+      query;
+      uri;
+      version;
+    }
+  in
+  let body_remaining = content_length req |> Option.value ~default:0 in
+  { req with body_remaining }
 
 let pp fmt ({ headers; meth; uri; version; _ } : t) =
   let req = Http.Request.make ~meth ~headers ~version (Uri.to_string uri) in
@@ -47,3 +85,5 @@ let is_keep_alive t =
   match Http.Header.get t.headers "connection" with
   | Some "keep_alive" -> true
   | _ -> false
+
+let body_encoding req = Http.Header.get_transfer_encoding req.headers

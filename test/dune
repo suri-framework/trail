@@ -1,3 +1,0 @@
-(test
- (name pipeline_test)
- (libraries trail riot telemetry))

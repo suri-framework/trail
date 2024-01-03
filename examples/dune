@@ -1,3 +1,0 @@
-(executables
- (names hello_world echo)
- (libraries trail))

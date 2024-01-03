@@ -8,15 +8,15 @@ exception Connection_should_be_closed
 
 type t = {
   adapter : Adapter.t;
-  body : IO.Buffer.t;
-  halted : bool;
-  path : string;
-  meth : Http.Method.t;
-  headers : (string * string) list;
-  req : Request.t;
-  conn : Atacama.Connection.t;
-  status : Http.Status.t;
   before_send_cbs : (t -> unit) list;
+  conn : Atacama.Connection.t;
+  halted : bool;
+  headers : (string * string) list;
+  meth : Http.Method.t;
+  path : string;
+  req : Request.t;
+  resp_body : IO.Buffer.t;
+  status : Http.Status.t;
   switch : [ `websocket of Sock.upgrade_opts * Sock.t | `h2c ] option;
 }
 
@@ -26,15 +26,15 @@ type body
 let make adapter conn (req : Request.t) =
   {
     adapter;
-    body = IO.Buffer.with_capacity 1024;
+    before_send_cbs = [];
+    conn;
     halted = false;
     headers = [];
-    req;
-    conn;
-    status = `OK;
-    before_send_cbs = [];
-    path = Uri.to_string req.uri;
     meth = req.meth;
+    path = Uri.to_string req.uri;
+    req;
+    resp_body = IO.Buffer.with_capacity 1024;
+    status = `OK;
     switch = None;
   }
 
@@ -49,13 +49,15 @@ let with_header header value t =
 
 let with_body body t =
   let len = String.length body in
-  let body = if len > 0 then IO.Buffer.of_string body else t.body in
-  { t with body }
+  let resp_body = if len > 0 then IO.Buffer.of_string body else t.resp_body in
+  { t with resp_body }
 
 let with_status status t = { t with status }
 let respond ~status ?(body = "") t = t |> with_status status |> with_body body
 
-let send ({ adapter = (module A); conn; req; status; headers; body; _ } as t) =
+let send
+    ({ adapter = (module A); conn; req; status; headers; resp_body = body; _ }
+     as t) =
   run_callbacks t.before_send_cbs t;
   let res = Response.(make status ~version:req.version ~body ~headers ()) in
   let _ = A.send conn req res in
@@ -88,6 +90,24 @@ let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
   let _ = A.send_chunk conn req (IO.Buffer.of_string chunk) in
   t
 
+type read_result =
+  | Ok of t * IO.Buffer.t
+  | More of t * IO.Buffer.t
+  | Error of
+      t
+      * [ `Excess_body_read
+        | `Closed
+        | `Process_down
+        | `Timeout
+        | IO.unix_error ]
+
 let close t = { t with halted = true }
 let upgrade switch t = { t with switch = Some switch; halted = true }
 let switch t = t.switch
+
+let read_body ?limit ({ adapter = (module A); conn; req; _ } as t) =
+  Logger.trace (fun f -> f "reading body");
+  match A.read_body ?limit conn req with
+  | Adapter.Ok (req, body) -> Ok ({ t with req }, body)
+  | Adapter.More (req, body) -> More ({ t with req }, body)
+  | Adapter.Error (req, reason) -> Error ({ t with req }, reason)

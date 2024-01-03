@@ -3,7 +3,6 @@ exception Connection_should_be_closed
 type t = {
   adapter : Adapter.t;
   before_send_cbs : (t -> unit) list;
-  body_remaining : int;
   conn : Atacama.Connection.t;
   halted : bool;
   headers : (string * string) list;
