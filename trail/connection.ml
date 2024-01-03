@@ -1,5 +1,9 @@
 open Riot
 
+module Logger = Logger.Make (struct
+  let namespace = [ "trail"; "conn" ]
+end)
+
 exception Connection_should_be_closed
 
 type t = {
