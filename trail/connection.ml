@@ -6,6 +6,8 @@ end)
 
 exception Connection_should_be_closed
 
+type peer = { ip : Net.Addr.tcp_addr; port : int }
+
 type t = {
   adapter : Adapter.t;
   before_send_cbs : (t -> unit) list;
@@ -14,6 +16,7 @@ type t = {
   headers : (string * string) list;
   meth : Http.Method.t;
   path : string;
+  peer : peer;
   req : Request.t;
   resp_body : IO.Buffer.t;
   status : Http.Status.t;
@@ -24,6 +27,8 @@ type status
 type body
 
 let make adapter conn (req : Request.t) =
+  let peer = Atacama.Connection.peer conn in
+  let peer = { ip = Net.Addr.ip peer; port = Net.Addr.port peer } in
   {
     adapter;
     before_send_cbs = [];
@@ -32,6 +37,7 @@ let make adapter conn (req : Request.t) =
     headers = [];
     meth = req.meth;
     path = Uri.to_string req.uri;
+    peer;
     req;
     resp_body = IO.Buffer.with_capacity 1024;
     status = `OK;

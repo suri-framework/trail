@@ -1,4 +1,8 @@
+open Riot
+
 exception Connection_should_be_closed
+
+type peer = { ip : Net.Addr.tcp_addr; port : int }
 
 type t = {
   adapter : Adapter.t;
@@ -8,10 +12,11 @@ type t = {
   headers : (string * string) list;
   meth : Http.Method.t;
   path : string;
+  peer : peer;
   req : Request.t;
-  resp_body : Riot.IO.Buffer.t;
+  resp_body : IO.Buffer.t;
   status : Http.Status.t;
-  switch : [ `h2c | `websocket of Sock.upgrade_opts * Sock.t ] option;
+  switch : [ `websocket of Sock.upgrade_opts * Sock.t | `h2c ] option;
 }
 
 type status

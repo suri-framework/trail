@@ -276,6 +276,8 @@ end
 
 (** The `Conn` module includes functions for handling an ongoing connection. *)
 module Conn : sig
+  type peer = { ip : Net.Addr.tcp_addr; port : int }
+
   type t = {
     adapter : Adapter.t;
     before_send_cbs : (t -> unit) list;
@@ -284,6 +286,7 @@ module Conn : sig
     headers : (string * string) list;
     meth : Http.Method.t;
     path : string;
+    peer : peer;
     req : Request.t;
     resp_body : IO.Buffer.t;
     status : Http.Status.t;
