@@ -9,6 +9,7 @@ type t = {
   before_send_cbs : (t -> unit) list;
   conn : Atacama.Connection.t;
   halted : bool;
+  chunked : bool;
   headers : (string * string) list;
   meth : Http.Method.t;
   path : string;

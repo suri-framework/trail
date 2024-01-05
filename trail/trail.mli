@@ -251,6 +251,7 @@ module Adapter : sig
   module type Intf = sig
     val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
     val send_chunk : Atacama.Connection.t -> Request.t -> IO.Buffer.t -> unit
+    val close_chunk : Atacama.Connection.t -> unit
 
     val send_file :
       Atacama.Connection.t ->
@@ -282,6 +283,7 @@ module Conn : sig
     before_send_cbs : (t -> unit) list;
     conn : Atacama.Connection.t;
     halted : bool;
+    chunked : bool;
     headers : (string * string) list;
     meth : Http.Method.t;
     path : string;

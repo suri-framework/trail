@@ -13,6 +13,7 @@ type t = {
   before_send_cbs : (t -> unit) list;
   conn : Atacama.Connection.t;
   halted : bool;
+  chunked : bool;
   headers : (string * string) list;
   meth : Http.Method.t;
   path : string;
@@ -34,6 +35,7 @@ let make adapter conn (req : Request.t) =
     before_send_cbs = [];
     conn;
     halted = false;
+    chunked = false;
     headers = [];
     meth = req.meth;
     path = Uri.to_string req.uri;
@@ -90,7 +92,7 @@ let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
     Response.(make t.status ~version:req.version ~headers:t.headers ())
   in
   let _ = A.send conn req res in
-  t
+  { t with chunked = true }
 
 let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
   let _ = A.send_chunk conn req (IO.Buffer.of_string chunk) in
@@ -107,7 +109,10 @@ type read_result =
         | `Timeout
         | IO.unix_error ]
 
-let close t = { t with halted = true }
+let close ({ adapter = (module A); conn; _ } as t) =
+  if t.chunked then A.close_chunk conn;
+  { t with halted = true }
+
 let upgrade switch t = { t with switch = Some switch; halted = true }
 let switch t = t.switch
 
