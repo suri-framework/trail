@@ -30,6 +30,45 @@ let to_buffer { status; headers; version; body } =
     | _ -> headers
   in
 
+  let headers =
+    match Http.Header.get headers "date" with
+    | Some _ -> headers
+    | None ->
+        let now = Ptime_clock.now () in
+        let (d, mon, y), ((h, m, s), _ns) = Ptime.to_date_time now in
+        let day =
+          match Ptime.weekday ?tz_offset_s:None now with
+          | `Sat -> "Sat"
+          | `Fri -> "Fri"
+          | `Mon -> "Mon"
+          | `Wed -> "Wed"
+          | `Tue -> "Tue"
+          | `Sun -> "Sun"
+          | `Thu -> "Thu"
+        in
+        let[@warning "-8"] mon =
+          match mon with
+          | 0 -> "Jan"
+          | 1 -> "Feb"
+          | 2 -> "Mar"
+          | 3 -> "Apr"
+          | 4 -> "May"
+          | 5 -> "Jun"
+          | 6 -> "Jul"
+          | 7 -> "Aug"
+          | 8 -> "Sep"
+          | 9 -> "Oct"
+          | 10 -> "Nov"
+          | 11 -> "Dec"
+        in
+        let now =
+          Format.sprintf "%s, %d %s %d %d:%02d:%02d GMT" day d mon y h m s
+        in
+        Logger.debug (fun f -> f "Adding date header: %S" now);
+        let now = String.sub now 0 25 in
+        Http.Header.add headers "date" now
+  in
+
   let headers = headers |> Http.Header.to_list |> Httpaf.Headers.of_list in
 
   let res = Httpaf.Response.create ~version ~headers status in
