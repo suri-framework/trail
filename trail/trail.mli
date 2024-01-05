@@ -109,7 +109,7 @@ module Response : sig
     status : Http.Status.t;
     headers : Http.Header.t;
     version : Http.Version.t;
-    body : IO.Buffer.t option;
+    body : IO.Buffer.t;
   }
 
   val make :
@@ -121,7 +121,6 @@ module Response : sig
     t
 
   val pp : Format.formatter -> t -> unit
-  val to_buffer : t -> IO.Buffer.t
 
   type response =
     ?headers:(string * string) list ->
