@@ -24,6 +24,9 @@
   atacama
   http
   httpaf
+  (calendar (>= "3.0.0"))
+  (bitstring (>= "4.1.0"))
+  (ppx_bitstring (>= "4.1.0"))
   (uuidm
    (>= "0.9.8")))
  (tags
