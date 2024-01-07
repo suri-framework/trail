@@ -32,7 +32,8 @@ val with_body : string -> t -> t
 val with_status : Http.Status.t -> t -> t
 val respond : status:Http.Status.t -> ?body:string -> t -> t
 val send : t -> t
-val send_response : Http.Status.t -> ?body:string -> t -> t
+val send_status : Http.Status.t -> t -> t
+val send_response : Http.Status.t -> string -> t -> t
 val inform : Http.Status.t -> (string * string) list -> t -> t
 val send_file : Http.Status.t -> ?off:int -> ?len:int -> string -> t -> t
 val send_chunked : Http.Status.t -> t -> t

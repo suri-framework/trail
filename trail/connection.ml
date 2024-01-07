@@ -71,7 +71,8 @@ let send
   let _ = A.send conn req res in
   { t with halted = true }
 
-let send_response status ?body t = respond t ~status ?body |> send
+let send_status status t = respond t ~status |> send
+let send_response status body t = respond t ~status ~body |> send
 
 let inform status headers ({ adapter = (module A); conn; req; _ } as t) =
   let res = Response.(make status ~version:req.version ~headers ()) in

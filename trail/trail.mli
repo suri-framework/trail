@@ -334,7 +334,10 @@ module Conn : sig
       operations would raise.
   *)
 
-  val send_response : Http.Status.t -> ?body:string -> t -> t
+  val send_status : Http.Status.t -> t -> t
+  (** Send a response with a status but no body *)
+
+  val send_response : Http.Status.t -> string -> t -> t
   (** Convenience function to set a response and send it in one go. *)
 
   val send_chunked : Http.Status.t -> t -> t
