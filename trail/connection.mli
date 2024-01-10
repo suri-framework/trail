@@ -15,7 +15,7 @@ type t = {
   path : string;
   peer : peer;
   req : Request.t;
-  resp_body : IO.Bytes.t;
+  resp_body : Bytestring.t;
   status : Http.Status.t;
   switch : [ `websocket of Sock.upgrade_opts * Sock.t | `h2c ] option;
 }
@@ -40,8 +40,8 @@ val send_chunked : Http.Status.t -> t -> t
 val chunk : string -> t -> t
 
 type read_result =
-  | Ok of t * Riot.IO.Bytes.t
-  | More of t * Riot.IO.Bytes.t
+  | Ok of t * Bytestring.t
+  | More of t * Bytestring.t
   | Error of
       t
       * [ `Closed

@@ -1,8 +1,8 @@
 open Riot
 
 type read_result =
-  | Ok of Request.t * IO.Bytes.t
-  | More of Request.t * IO.Bytes.t
+  | Ok of Request.t * Bytestring.t
+  | More of Request.t * Bytestring.t
   | Error of
       Request.t
       * [ `Excess_body_read
@@ -13,7 +13,7 @@ type read_result =
 
 module type Intf = sig
   val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
-  val send_chunk : Atacama.Connection.t -> Request.t -> IO.Bytes.t -> unit
+  val send_chunk : Atacama.Connection.t -> Request.t -> Bytestring.t -> unit
   val close_chunk : Atacama.Connection.t -> unit
 
   val send_file :

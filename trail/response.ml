@@ -4,7 +4,7 @@ type t = {
   status : Http.Status.t;
   headers : Http.Header.t;
   version : Http.Version.t;
-  body : IO.Bytes.t;
+  body : Bytestring.t;
 }
 
 let pp fmt ({ headers; version; status; _ } : t) =
@@ -12,13 +12,13 @@ let pp fmt ({ headers; version; status; _ } : t) =
   Http.Response.pp fmt res
 
 let make status ?(headers = []) ?(version = `HTTP_1_1)
-    ?(body = IO.Bytes.of_string "") () =
+    ?(body = Bytestring.empty) () =
   { status; version; headers = Http.Header.of_list headers; body }
 
 type response =
   ?headers:(string * string) list ->
   ?version:Http.Version.t ->
-  ?body:IO.Bytes.t ->
+  ?body:Bytestring.t ->
   unit ->
   t
 

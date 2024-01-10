@@ -19,7 +19,7 @@ type t = {
   path : string;
   peer : peer;
   req : Request.t;
-  resp_body : IO.Bytes.t;
+  resp_body : Bytestring.t;
   status : Http.Status.t;
   switch : [ `websocket of Sock.upgrade_opts * Sock.t | `h2c ] option;
 }
@@ -41,7 +41,7 @@ let make adapter conn (req : Request.t) =
     path = Uri.to_string req.uri;
     peer;
     req;
-    resp_body = IO.Bytes.with_capacity 1024;
+    resp_body = Bytestring.empty;
     status = `OK;
     switch = None;
   }
@@ -57,7 +57,7 @@ let with_header header value t =
 
 let with_body body t =
   let len = String.length body in
-  let resp_body = if len > 0 then IO.Bytes.of_string body else t.resp_body in
+  let resp_body = if len > 0 then Bytestring.of_string body else t.resp_body in
   { t with resp_body }
 
 let with_status status t = { t with status }
@@ -96,12 +96,12 @@ let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
   { t with chunked = true }
 
 let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
-  let _ = A.send_chunk conn req (IO.Bytes.of_string chunk) in
+  let _ = A.send_chunk conn req (Bytestring.of_string chunk) in
   t
 
 type read_result =
-  | Ok of t * IO.Bytes.t
-  | More of t * IO.Bytes.t
+  | Ok of t * Bytestring.t
+  | More of t * Bytestring.t
   | Error of
       t
       * [ `Excess_body_read
