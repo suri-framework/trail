@@ -4,21 +4,21 @@ type t = {
   status : Http.Status.t;
   headers : Http.Header.t;
   version : Http.Version.t;
-  body : IO.Buffer.t;
+  body : IO.Bytes.t;
 }
 
 let pp fmt ({ headers; version; status; _ } : t) =
   let res = Http.Response.make ~headers ~version ~status () in
   Http.Response.pp fmt res
 
-let make status ?(headers = []) ?(version = `HTTP_1_1) ?(body = IO.Buffer.empty)
-    () =
+let make status ?(headers = []) ?(version = `HTTP_1_1)
+    ?(body = IO.Bytes.of_string "") () =
   { status; version; headers = Http.Header.of_list headers; body }
 
 type response =
   ?headers:(string * string) list ->
   ?version:Http.Version.t ->
-  ?body:IO.Buffer.t ->
+  ?body:IO.Bytes.t ->
   unit ->
   t
 

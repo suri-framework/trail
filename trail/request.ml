@@ -2,11 +2,11 @@ open Riot
 
 type body_reader =
   Atacama.Connection.t ->
-  [ `ok of IO.Buffer.t | `more of IO.Buffer.t | `error of IO.unix_error ]
+  [ `ok of IO.Bytes.t | `more of IO.Bytes.t | `error of IO.unix_error ]
 
 type t = {
   body_remaining : int;
-  buffer : IO.Buffer.t;
+  buffer : IO.Bytes.t;
   encoding : Http.Transfer.encoding;
   headers : Http.Header.t;
   meth : Http.Method.t;
@@ -34,7 +34,7 @@ let content_length req =
       | _ :: _ -> raise Invalid_content_header
       | _ -> None)
 
-let make ?(body = IO.Buffer.empty) ?(meth = `GET) ?(version = `HTTP_1_1)
+let make ?(body = IO.Bytes.of_string "") ?(meth = `GET) ?(version = `HTTP_1_1)
     ?(headers = []) uri =
   let uri = Uri.of_string uri in
   let headers = Http.Header.of_list headers in

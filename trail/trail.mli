@@ -53,12 +53,12 @@ module Frame : sig
     ?max_frame_size:int ->
     string ->
     ([> `error of [> `Unknown_opcode of int ]
-     | `more of Riot.IO.Buffer.t
+     | `more of Riot.IO.Bytes.t
      | `ok of t ]
     * string)
     option
 
-  val serialize : t -> Riot.IO.Buffer.t
+  val serialize : t -> Riot.IO.Bytes.t
 end
 
 module Sock : sig
@@ -109,14 +109,14 @@ module Response : sig
     status : Http.Status.t;
     headers : Http.Header.t;
     version : Http.Version.t;
-    body : IO.Buffer.t;
+    body : IO.Bytes.t;
   }
 
   val make :
     Http.Status.t ->
     ?headers:(string * string) list ->
     ?version:Http.Version.t ->
-    ?body:IO.Buffer.t ->
+    ?body:IO.Bytes.t ->
     unit ->
     t
 
@@ -125,7 +125,7 @@ module Response : sig
   type response =
     ?headers:(string * string) list ->
     ?version:Http.Version.t ->
-    ?body:IO.Buffer.t ->
+    ?body:IO.Bytes.t ->
     unit ->
     t
 
@@ -203,11 +203,11 @@ end
 module Request : sig
   type body_reader =
     Atacama.Connection.t ->
-    [ `ok of IO.Buffer.t | `more of IO.Buffer.t | `error of IO.unix_error ]
+    [ `ok of IO.Bytes.t | `more of IO.Bytes.t | `error of IO.unix_error ]
 
   type t = {
     body_remaining : int;
-    buffer : IO.Buffer.t;
+    buffer : IO.Bytes.t;
     encoding : Http.Transfer.encoding;
     headers : Http.Header.t;
     meth : Http.Method.t;
@@ -218,7 +218,7 @@ module Request : sig
   }
 
   val make :
-    ?body:IO.Buffer.t ->
+    ?body:IO.Bytes.t ->
     ?meth:Http.Method.t ->
     ?version:Http.Version.t ->
     ?headers:(string * string) list ->
@@ -238,8 +238,8 @@ end
 
 module Adapter : sig
   type read_result =
-    | Ok of Request.t * IO.Buffer.t
-    | More of Request.t * IO.Buffer.t
+    | Ok of Request.t * IO.Bytes.t
+    | More of Request.t * IO.Bytes.t
     | Error of
         Request.t
         * [ `Excess_body_read
@@ -250,7 +250,7 @@ module Adapter : sig
 
   module type Intf = sig
     val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
-    val send_chunk : Atacama.Connection.t -> Request.t -> IO.Buffer.t -> unit
+    val send_chunk : Atacama.Connection.t -> Request.t -> IO.Bytes.t -> unit
     val close_chunk : Atacama.Connection.t -> unit
 
     val send_file :
@@ -289,7 +289,7 @@ module Conn : sig
     path : string;
     peer : peer;
     req : Request.t;
-    resp_body : IO.Buffer.t;
+    resp_body : IO.Bytes.t;
     status : Http.Status.t;
     switch : [ `websocket of Sock.upgrade_opts * Sock.t | `h2c ] option;
   }
@@ -351,8 +351,8 @@ module Conn : sig
   *)
 
   type read_result =
-    | Ok of t * IO.Buffer.t
-    | More of t * IO.Buffer.t
+    | Ok of t * IO.Bytes.t
+    | More of t * IO.Bytes.t
     | Error of
         t
         * [ `Excess_body_read

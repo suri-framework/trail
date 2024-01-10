@@ -109,7 +109,7 @@ let deserialize ?(max_frame_size = 0) data =
        rest : -1 : string |}
     when length <= 125 && (max_frame_size == 0 || length <= max_frame_size) ->
       Some (make ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
-  | {| data : -1 : string  |} -> Some (`more (IO.Buffer.of_string data), "")
+  | {| data : -1 : string  |} -> Some (`more (IO.Bytes.of_string data), "")
 
 let serialize (t : t) =
   let opcode, fin, compressed, payload =
@@ -133,4 +133,4 @@ let serialize (t : t) =
   let payload = Bitstring.bitstring_of_string payload in
   let data = Bitstring.concat [ header; mask (); payload ] in
   let frame = Bitstring.string_of_bitstring data in
-  IO.Buffer.of_string frame
+  IO.Bytes.of_string frame
