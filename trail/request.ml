@@ -40,9 +40,10 @@ let make ?(body = Bytestring.of_string "") ?(meth = `GET) ?(version = `HTTP_1_1)
   let headers = Http.Header.of_list headers in
   let encoding = Http.Header.get_transfer_encoding headers in
   let path =
-    match Uri.path uri |> String.split_on_char '/' with
+    (match Uri.path uri |> String.split_on_char '/' with
     | "" :: path -> path
-    | path -> path
+    | path -> path)
+    |> List.filter (fun part -> String.length part > 0)
   in
   let query = Uri.query uri in
   let req =
