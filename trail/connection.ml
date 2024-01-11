@@ -55,13 +55,11 @@ let register_before_send fn t =
 let with_header header value t =
   { t with headers = (header, value) :: t.headers }
 
-let with_body body t =
-  let len = String.length body in
-  let resp_body = if len > 0 then Bytestring.of_string body else t.resp_body in
-  { t with resp_body }
-
+let with_body resp_body t = { t with resp_body }
 let with_status status t = { t with status }
-let respond ~status ?(body = "") t = t |> with_status status |> with_body body
+
+let respond ~status ?(body = {%b||}) t =
+  t |> with_status status |> with_body body
 
 let send
     ({ adapter = (module A); conn; req; status; headers; resp_body = body; _ }
@@ -79,7 +77,7 @@ let inform status headers ({ adapter = (module A); conn; req; _ } as t) =
   let _ = A.send conn req res in
   t
 
-let send_file status ?off ?len path
+let send_file status ?off ?len ~path
     ({ adapter = (module A); conn; req; _ } as t) =
   let res = Response.(make status ~version:req.version ~headers:t.headers ()) in
   let _ = A.send_file conn req res ?off ?len ~path () in
@@ -96,7 +94,7 @@ let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
   { t with chunked = true }
 
 let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
-  let _ = A.send_chunk conn req (Bytestring.of_string chunk) in
+  let _ = A.send_chunk conn req chunk in
   t
 
 type read_result =

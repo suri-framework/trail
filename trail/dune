@@ -2,7 +2,7 @@
  (public_name trail)
  (name trail)
  (preprocess
-  (pps ppx_bitstring))
+  (pps ppx_bitstring bytestring.ppx))
  (libraries
   riot
   atacama

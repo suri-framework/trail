@@ -313,13 +313,13 @@ module Conn : sig
       will have this header set.
   *)
 
-  val with_body : string -> t -> t
+  val with_body : Bytestring.t -> t -> t
   (** `with_body body conn` will set the response body to `body` *)
 
   val with_status : Http.Status.t -> t -> t
   (** `with_status status conn` will set the response status to `status` *)
 
-  val respond : status:Http.Status.t -> ?body:string -> t -> t
+  val respond : status:Http.Status.t -> ?body:Bytestring.t -> t -> t
   (** Set the status code and optionally the response body for a connection. *)
 
   val send : t -> t
@@ -337,7 +337,7 @@ module Conn : sig
   val send_status : Http.Status.t -> t -> t
   (** Send a response with a status but no body *)
 
-  val send_response : Http.Status.t -> string -> t -> t
+  val send_response : Http.Status.t -> Bytestring.t -> t -> t
   (** Convenience function to set a response and send it in one go. *)
 
   val send_chunked : Http.Status.t -> t -> t
@@ -346,7 +346,7 @@ module Conn : sig
       You can use the [chunk data conn] function to send more data.
   *)
 
-  val chunk : string -> t -> t
+  val chunk : Bytestring.t -> t -> t
   (** [chunk data conn] will send data to the streamed connection.
   *)
 
@@ -371,7 +371,7 @@ module Conn : sig
       On errors, this returns an [Error (conn, reason)].
   *)
 
-  val send_file : Http.Status.t -> ?off:int -> ?len:int -> string -> t -> t
+  val send_file : Http.Status.t -> ?off:int -> ?len:int -> path:string -> t -> t
   (** [send_file code path conn] sets up the connection [conn] and transfers
       the file at [path] with status code [code].
   *)
