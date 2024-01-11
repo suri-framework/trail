@@ -26,3 +26,9 @@ let call conn args =
              f "Delivered %d bytes in %a"
                (Bytestring.length conn.resp_body)
                Ptime.Span.pp elapsed_time))
+  |> register_after_send (fun conn ->
+         let end_time = Ptime_clock.now () in
+         let start_time = Atacama.Connection.accepted_at conn.conn in
+         let elapsed_time = Ptime.diff end_time start_time in
+         Logger.info (fun f ->
+             f "Handled connection in %a" Ptime.Span.pp elapsed_time))
