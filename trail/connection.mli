@@ -7,6 +7,7 @@ type peer = { ip : Net.Addr.tcp_addr; port : int }
 type t = {
   adapter : Adapter.t;
   before_send_cbs : (t -> unit) list;
+  after_send_cbs : (t -> unit) list;
   conn : Atacama.Connection.t;
   halted : bool;
   chunked : bool;
@@ -27,6 +28,7 @@ val make : Adapter.t -> Atacama.Connection.t -> Request.t -> t
 val halted : t -> bool
 val run_callbacks : ('a -> unit) list -> 'a -> unit
 val register_before_send : (t -> unit) -> t -> t
+val register_after_send : (t -> unit) -> t -> t
 val with_header : string -> string -> t -> t
 val with_body : Bytestring.t -> t -> t
 val with_status : Http.Status.t -> t -> t

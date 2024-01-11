@@ -11,6 +11,7 @@ type peer = { ip : Net.Addr.tcp_addr; port : int }
 type t = {
   adapter : Adapter.t;
   before_send_cbs : (t -> unit) list;
+  after_send_cbs : (t -> unit) list;
   conn : Atacama.Connection.t;
   halted : bool;
   chunked : bool;
@@ -33,6 +34,7 @@ let make adapter conn (req : Request.t) =
   {
     adapter;
     before_send_cbs = [];
+    after_send_cbs = [];
     conn;
     halted = false;
     chunked = false;
@@ -52,6 +54,9 @@ let run_callbacks fns t = fns |> List.rev |> List.iter (fun cb -> cb t)
 let register_before_send fn t =
   { t with before_send_cbs = fn :: t.before_send_cbs }
 
+let register_after_send fn t =
+  { t with after_send_cbs = fn :: t.after_send_cbs }
+
 let with_header header value t =
   { t with headers = (header, value) :: t.headers }
 
@@ -67,6 +72,7 @@ let send
   run_callbacks t.before_send_cbs t;
   let res = Response.(make status ~version:req.version ~body ~headers ()) in
   let _ = A.send conn req res in
+  run_callbacks t.after_send_cbs t;
   { t with halted = true }
 
 let send_status status t = respond t ~status |> send

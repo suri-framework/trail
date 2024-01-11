@@ -281,6 +281,7 @@ module Conn : sig
   type t = {
     adapter : Adapter.t;
     before_send_cbs : (t -> unit) list;
+    after_send_cbs : (t -> unit) list;
     conn : Atacama.Connection.t;
     halted : bool;
     chunked : bool;
@@ -298,6 +299,8 @@ module Conn : sig
       A `Conn.t` represents an active connection, and is the main value passed
       across the trails.
    *)
+
+  val register_after_send : (t -> unit) -> t -> t
 
   val register_before_send : (t -> unit) -> t -> t
   (** `register_before_send fn` will call the function `fn` with the current

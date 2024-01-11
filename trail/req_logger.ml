@@ -19,3 +19,10 @@ let call conn args =
          Logger.info (fun f ->
              f "Sent %a in %a" Http.Status.pp conn.status Ptime.Span.pp
                elapsed_time))
+  |> register_after_send (fun conn ->
+         let end_time = Ptime_clock.now () in
+         let elapsed_time = Ptime.diff end_time start_time in
+         Logger.info (fun f ->
+             f "Delivered %d bytes in %a"
+               (Bytestring.length conn.resp_body)
+               Ptime.Span.pp elapsed_time))
