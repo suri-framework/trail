@@ -2,7 +2,7 @@ open Riot
 
 type body_reader =
   Atacama.Connection.t ->
-  [ `ok of Bytestring.t | `more of Bytestring.t | `error of IO.unix_error ]
+  [ `ok of Bytestring.t | `more of Bytestring.t | `error of IO.io_error ]
 
 type t = {
   body_remaining : int;

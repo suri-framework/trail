@@ -203,7 +203,7 @@ end
 module Request : sig
   type body_reader =
     Atacama.Connection.t ->
-    [ `ok of Bytestring.t | `more of Bytestring.t | `error of IO.unix_error ]
+    [ `ok of Bytestring.t | `more of Bytestring.t | `error of IO.io_error ]
 
   type t = {
     body_remaining : int;
@@ -246,7 +246,7 @@ module Adapter : sig
           | `Closed
           | `Process_down
           | `Timeout
-          | IO.unix_error ]
+          | IO.io_error ]
 
   module type Intf = sig
     val send : Atacama.Connection.t -> Request.t -> Response.t -> unit
@@ -362,7 +362,7 @@ module Conn : sig
           | `Closed
           | `Process_down
           | `Timeout
-          | IO.unix_error ]
+          | IO.io_error ]
 
   val read_body : ?limit:int -> t -> read_result
   (** [read_body ?limit conn] will do a read on the body and return a buffer

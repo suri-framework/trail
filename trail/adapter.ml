@@ -5,11 +5,7 @@ type read_result =
   | More of Request.t * Bytestring.t
   | Error of
       Request.t
-      * [ `Excess_body_read
-        | `Closed
-        | `Process_down
-        | `Timeout
-        | IO.unix_error ]
+      * [ `Excess_body_read | `Closed | `Process_down | `Timeout | IO.io_error ]
 
 module type Intf = sig
   val send : Atacama.Connection.t -> Request.t -> Response.t -> unit

@@ -108,11 +108,7 @@ type read_result =
   | More of t * Bytestring.t
   | Error of
       t
-      * [ `Excess_body_read
-        | `Closed
-        | `Process_down
-        | `Timeout
-        | IO.unix_error ]
+      * [ `Excess_body_read | `Closed | `Process_down | `Timeout | IO.io_error ]
 
 let close ({ adapter = (module A); conn; _ } as t) =
   if t.chunked then A.close_chunk conn;

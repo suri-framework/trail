@@ -46,11 +46,7 @@ type read_result =
   | More of t * Bytestring.t
   | Error of
       t
-      * [ `Closed
-        | `Excess_body_read
-        | `Process_down
-        | `Timeout
-        | `Unix_error of Unix.error ]
+      * [ `Closed | `Excess_body_read | `Process_down | `Timeout | IO.io_error ]
 
 val read_body : ?limit:int -> t -> read_result
 val close : t -> t
