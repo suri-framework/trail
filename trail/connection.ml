@@ -18,6 +18,7 @@ type t = {
   headers : (string * string) list;
   meth : Http.Method.t;
   path : string;
+  params : (string * string) list;
   peer : peer;
   req : Request.t;
   resp_body : Bytestring.t;
@@ -41,6 +42,7 @@ let make adapter conn (req : Request.t) =
     headers = [];
     meth = req.meth;
     path = Uri.to_string req.uri;
+    params = [];
     peer;
     req;
     resp_body = Bytestring.empty;
@@ -102,6 +104,8 @@ let send_chunked status ({ adapter = (module A); conn; req; _ } as t) =
 let chunk chunk ({ adapter = (module A); conn; req; _ } as t) =
   let _ = A.send_chunk conn req chunk in
   t
+
+let set_params params t = { t with params }
 
 type read_result =
   | Ok of t * Bytestring.t

@@ -14,6 +14,7 @@ type t = {
   headers : (string * string) list;
   meth : Http.Method.t;
   path : string;
+  params : (string * string) list;
   peer : peer;
   req : Request.t;
   resp_body : Bytestring.t;
@@ -40,6 +41,7 @@ val inform : Http.Status.t -> (string * string) list -> t -> t
 val send_file : Http.Status.t -> ?off:int -> ?len:int -> path:string -> t -> t
 val send_chunked : Http.Status.t -> t -> t
 val chunk : Bytestring.t -> t -> t
+val set_params : (string * string) list -> t -> t
 
 type read_result =
   | Ok of t * Bytestring.t

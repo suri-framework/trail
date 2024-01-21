@@ -288,6 +288,7 @@ module Conn : sig
     headers : (string * string) list;
     meth : Http.Method.t;
     path : string;
+    params : (string * string) list;
     peer : peer;
     req : Request.t;
     resp_body : Bytestring.t;
@@ -351,6 +352,12 @@ module Conn : sig
 
   val chunk : Bytestring.t -> t -> t
   (** [chunk data conn] will send data to the streamed connection.
+  *)
+
+  val set_params : (string * string) list -> t -> t
+  (** [set_params params conn] updates the connection with parameters. Note
+      that this is primarily useful when building connection values that will
+      be handled by user trails.
   *)
 
   type read_result =
