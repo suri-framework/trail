@@ -1,5 +1,5 @@
 (executables
- (names echo hello_world)
+ (names hello_world)
  (preprocess
   (pps bytestring.ppx))
- (libraries trail nomad))
+ (libraries trail ))

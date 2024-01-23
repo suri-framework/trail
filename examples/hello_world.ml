@@ -1,14 +1,26 @@
 open Riot
+open Trail
 
-let trail =
-  let open Trail in
+module My_handler= struct
+  type args = unit
+  type state = unit
+
+  let init conn () = `continue (conn, ())
+
+  let handle_frame frame _conn _state = 
+    Riot.Logger.info (fun f -> f "frame: %a" Frame.pp frame);
+    `push []
+
+end
+
+let _trail =
   let open Router in
   [
     use (module Logger) Logger.(args ~level:Debug ());
     router
       [
+        socket "/ws" (module My_handler) ();
         get "/" (fun conn -> Conn.send_response `OK {%b|"hello world"|} conn);
-        (* socket "/" (module My_handler); *)
         scope "/api"
           [
             get "/version" (fun conn ->
@@ -20,16 +32,3 @@ let trail =
           ];
       ];
   ]
-
-[@@@warning "-8"]
-
-let () =
-  Riot.run @@ fun () ->
-  Logger.set_log_level (Some Info);
-  let (Ok _) = Logger.start () in
-  sleep 0.1;
-  let port = 2112 in
-  let handler = Nomad.trail trail in
-  let (Ok pid) = Nomad.start_link ~port ~handler () in
-  Logger.info (fun f -> f "Listening on 0.0.0.0:%d" port);
-  wait_pids [ pid ]

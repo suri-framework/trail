@@ -444,6 +444,8 @@ end
 module Router : sig
   type t
 
+val socket : string -> (module Sock.Intf with type args = 'args and type state = 'state) -> 'args -> t
+
   val get : string -> trail -> t
   val scope : string -> t list -> t
   val router : t list -> trail

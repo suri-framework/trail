@@ -164,4 +164,10 @@ let make (t : t) (conn : Conn.t) =
   | None -> conn |> Conn.send_response `Not_found {%b||}
   | Some (handler, params) -> conn |> Conn.set_params params |> handler
 
+let socket path sock_mod args =
+  get path @@ fun conn ->
+  let handler = Sock.make sock_mod args in
+  let opts = Sock.{ do_upgrade = true } in
+  conn |> Conn.upgrade (`websocket (opts, handler))
+
 let router t conn = make (scope "/" t) conn
