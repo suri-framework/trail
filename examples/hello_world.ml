@@ -2,14 +2,16 @@ open Riot
 open Trail
 
 module My_handler = struct
+  include Sock.Default
+
   type args = unit
   type state = unit
 
-  let init conn () = `continue (conn, ())
+  let init () = `ok ()
 
-  let handle_frame frame _conn _state =
+  let handle_frame frame _conn state =
     Riot.Logger.info (fun f -> f "frame: %a" Frame.pp frame);
-    `push []
+    `push ([], state)
 end
 
 let _trail =

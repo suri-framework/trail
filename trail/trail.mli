@@ -64,24 +64,25 @@ end
 module Sock : sig
   type upgrade_opts = { do_upgrade : bool }
 
+  type ('state, 'error) handle_result =
+    [ `push of Frame.t list * 'state
+    | `ok of 'state
+    | `error of 'state * 'error ]
+
   module type Intf = sig
     type state
     type args
 
-    val init :
-      Atacama.Connection.t ->
-      args ->
-      [ `continue of Atacama.Connection.t * state
-      | `error of Atacama.Connection.t * [> `Unknown_opcode of int ] ]
+    val init : args -> (state, [> `Unknown_opcode of int ]) handle_result
 
     val handle_frame :
       Frame.t ->
       Atacama.Connection.t ->
       state ->
-      [ `push of Frame.t list
-      | `continue of Atacama.Connection.t
-      | `close of Atacama.Connection.t
-      | `error of Atacama.Connection.t * [> `Unknown_opcode of int ] ]
+      (state, [> `Unknown_opcode of int ]) handle_result
+
+    val handle_message :
+      Message.t -> state -> (state, [> `Unknown_opcode of int ]) handle_result
   end
 
   type t
@@ -98,10 +99,27 @@ module Sock : sig
     t ->
     Frame.t ->
     Atacama.Connection.t ->
-    [ `close of Atacama.Connection.t
-    | `continue of Atacama.Connection.t
+    [> `continue of Atacama.Connection.t * t
     | `error of Atacama.Connection.t * [> `Unknown_opcode of int ]
-    | `push of Frame.t list ]
+    | `push of Frame.t list * t ]
+
+  val handle_message :
+    t ->
+    Message.t ->
+    'a ->
+    [> `continue of 'a * t
+    | `error of 'a * [> `Unknown_opcode of int ]
+    | `push of Frame.t list * t ]
+
+  module Default : sig
+    val handle_frame :
+      Frame.t ->
+      Atacama.Connection.t ->
+      'state ->
+      ('state, 'error) handle_result
+
+    val handle_message : Message.t -> 'state -> ('state, 'error) handle_result
+  end
 end
 
 module Response : sig
