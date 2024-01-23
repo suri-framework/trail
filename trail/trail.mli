@@ -37,6 +37,12 @@ module Frame : sig
     | Ping
     | Pong
 
+  val text : ?fin:bool -> ?compressed:bool -> string -> t
+  val binary : ?fin:bool -> ?compressed:bool -> string -> t
+  val continuation : ?fin:bool -> ?compressed:bool -> string -> t
+  val connection_close : ?fin:bool -> ?compressed:bool -> string -> t
+  val ping : t
+  val pong : t
   val pp : Format.formatter -> t -> unit
   val unmask : int32 -> string -> string
 

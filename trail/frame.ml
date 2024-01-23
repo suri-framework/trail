@@ -31,6 +31,21 @@ type t =
   | Ping
   | Pong
 
+let text ?(fin = false) ?(compressed = false) payload =
+  Text { fin; compressed; payload }
+
+let binary ?(fin = false) ?(compressed = false) payload =
+  Binary { fin; compressed; payload }
+
+let continuation ?(fin = false) ?(compressed = false) payload =
+  Continuation { fin; compressed; payload }
+
+let connection_close ?(fin = false) ?(compressed = false) payload =
+  Connection_close { fin; compressed; payload }
+
+let ping = Ping
+let pong = Pong
+
 let pp fmt (t : t) =
   match t with
   | Continuation { fin; compressed; payload } ->
