@@ -429,21 +429,25 @@ module type Intf = sig
   val call : Conn.t -> state -> Conn.t
 end
 
-val trail : (module Intf with type args = 'args) -> 'args -> trail
+val use : (module Intf with type args = 'args) -> 'args -> trail
 
-module Req_logger : sig
+module Logger : sig
   type level = Logger.level
   type args = { level : Logger.level; id : int Atomic.t }
+  type state = args
+
+  val init : args -> state
+  val call : Conn.t -> state -> Conn.t
+  val args : level:level -> unit -> args
 end
 
-val logger : level:Logger.level -> unit -> trail
+module Router : sig
+  type t
 
-module Request_id : sig
-  type id_kind = Uuid_v4
-  type args = { kind : id_kind }
+  val get : string -> trail -> t
+  val scope : string -> t list -> t
+  val router : t list -> trail
 end
-
-val request_id : Request_id.args -> trail
 
 val handler :
   Adapter.t ->

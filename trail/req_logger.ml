@@ -5,7 +5,7 @@ type level = Logger.level
 type args = { level : Logger.level; id : int Atomic.t }
 type state = args
 
-let make ~level () = { level; id = Atomic.make 0 }
+let args ~level () = { level; id = Atomic.make 0 }
 let init args = args
 
 let call conn args =

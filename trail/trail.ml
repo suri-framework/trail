@@ -14,7 +14,7 @@ module type Intf = sig
   val call : Conn.t -> state -> Conn.t
 end
 
-let trail (type args) (module T : Intf with type args = args) (args : args) =
+let use (type args) (module T : Intf with type args = args) (args : args) =
   let args = T.init args in
   fun conn -> T.call conn args
 
@@ -26,10 +26,6 @@ let handler adapter pipeline socket (req : Request.t) =
 
   match Conn.switch conn with Some switch -> `upgrade switch | None -> `close
 
-module Req_logger = Req_logger
-
-let logger ~level () = trail (module Req_logger) (Req_logger.make ~level ())
-
+module Router = Router
+module Logger = Req_logger
 module Request_id = Request_id
-
-let request_id args = trail (module Request_id) args
