@@ -442,11 +442,31 @@ module Logger : sig
 end
 
 module Router : sig
+  module type Resource = sig
+    val create : Conn.t -> Conn.t
+    val delete : Conn.t -> Conn.t
+    val edit : Conn.t -> Conn.t
+    val get : Conn.t -> Conn.t
+    val index : Conn.t -> Conn.t
+    val new_ : Conn.t -> Conn.t
+    val update : Conn.t -> Conn.t
+  end
+
   type t
 
-val socket : string -> (module Sock.Intf with type args = 'args and type state = 'state) -> 'args -> t
+  val socket :
+    string ->
+    (module Sock.Intf with type args = 'args and type state = 'state) ->
+    'args ->
+    t
 
   val get : string -> trail -> t
+  val post : string -> trail -> t
+  val head : string -> trail -> t
+  val patch : string -> trail -> t
+  val put : string -> trail -> t
+  val delete : string -> trail -> t
+  val resource : string -> (module Resource) -> t
   val scope : string -> t list -> t
   val router : t list -> trail
 end
