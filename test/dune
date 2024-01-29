@@ -1,0 +1,3 @@
+(test
+ (name frame_serde_test)
+ (libraries trail qcheck))

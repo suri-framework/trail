@@ -12,16 +12,24 @@ connection object.
 For example:
 
 ```ocaml
-Trail.[
-  Logger.run;
-  Request_id.run;
-  Cqrs_token.run;
-  Session.run;
-  (fun conn req -> conn |> send_resp ~status:`OK ~body:"hello world!");
-]
-```
+open Trail
+open Router
 
-Trail also comes with support for [Riot][riot], and to start a Trail supervision tree you can call `Trail.start_link ~port trail ctx`.
+let endpoint =
+  [
+    use (module Logger) Logger.(args ~level:Debug ());
+    router
+      [
+        socket "/ws" (module My_handler) ();
+        get "/" (fun conn -> Conn.send_response `OK {%b|"hello world"|} conn);
+        scope "/api"
+          [
+            get "/version" (fun conn ->
+                Conn.send_response `OK {%b|"none"|} conn);
+          ];
+      ];
+  ]
+```
 
 [riot]: https://github.com/leostera/riot
 [plug]: https://hexdocs.pm/plug/readme.html

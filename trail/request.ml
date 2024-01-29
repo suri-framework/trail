@@ -73,15 +73,6 @@ let from_http req =
   let version = Http.Request.version req in
   make ~meth ~version ~headers target
 
-let from_httpaf req =
-  let open Httpaf.Request in
-  let version =
-    Httpaf.Version.to_string req.version |> Http.Version.of_string
-  in
-  let headers = Httpaf.Headers.to_list req.headers in
-  let meth = (req.meth :> Http.Method.t) in
-  make ~meth ~version ~headers req.target
-
 let is_keep_alive t =
   match Http.Header.get t.headers "connection" with
   | Some "keep_alive" -> true

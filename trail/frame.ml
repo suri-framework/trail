@@ -1,5 +1,9 @@
 open Riot
 
+open Logger.Make (struct
+  let namespace = [ "trail"; "ws"; "frame" ]
+end)
+
 (**
     0                   1                   2                   3
      0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
@@ -30,6 +34,26 @@ type t =
   | Connection_close of { fin : bool; compressed : bool; payload : string }
   | Ping
   | Pong
+
+let equal (a : t) (b : t) =
+  match (a, b) with
+  | ( Continuation { fin = fin1; compressed = compressed1; payload = payload1 },
+      Continuation { fin = fin2; compressed = compressed2; payload = payload2 }
+    ) ->
+      fin1 = fin2 && compressed1 = compressed2 && String.equal payload1 payload2
+  | ( Text { fin = fin1; compressed = compressed1; payload = payload1 },
+      Text { fin = fin2; compressed = compressed2; payload = payload2 } ) ->
+      fin1 = fin2 && compressed1 = compressed2 && String.equal payload1 payload2
+  | ( Binary { fin = fin1; compressed = compressed1; payload = payload1 },
+      Binary { fin = fin2; compressed = compressed2; payload = payload2 } ) ->
+      fin1 = fin2 && compressed1 = compressed2 && String.equal payload1 payload2
+  | ( Connection_close
+        { fin = fin1; compressed = compressed1; payload = payload1 },
+      Connection_close
+        { fin = fin2; compressed = compressed2; payload = payload2 } ) ->
+      fin1 = fin2 && compressed1 = compressed2 && String.equal payload1 payload2
+  | Ping, Ping | Pong, Pong -> true
+  | _ -> false
 
 let text ?(fin = false) ?(compressed = false) payload =
   Text { fin; compressed; payload }
@@ -74,8 +98,10 @@ let unmask mask payload =
   done;
   Bigstringaf.to_string bs
 
-let make ~fin ~compressed ~rsv:_ ~opcode ~mask ~payload =
-  let payload = unmask mask payload in
+let new_mask () = Crypto.Random.int32 ()
+
+let make ~masked ~fin ~compressed ~rsv:_ ~opcode ~mask ~payload =
+  let payload = if masked then unmask mask payload else payload in
 
   match opcode with
   | 0x0 -> `ok (Continuation { fin; compressed; payload })
@@ -86,66 +112,182 @@ let make ~fin ~compressed ~rsv:_ ~opcode ~mask ~payload =
   | 0xA -> `ok Pong
   | _ -> `error (`Unknown_opcode opcode)
 
-let deserialize ?(max_frame_size = 0) data =
-  let binstr = Bitstring.bitstring_of_string data in
-  match%bitstring binstr with
-  | {| fin : 1;
+module Request = struct
+  let deserialize ?(max_frame_size = 0) data =
+    let binstr = Bitstring.bitstring_of_string data in
+    match%bitstring binstr with
+    | {| fin : 1;
        compressed : 1;
        rsv : 2;
        opcode : 4;
-       pad1 : 1 : check( pad1 = true );
+       masked : 1 : check( masked = true );
        pad2 : 7 : check( pad2 = 127 );
        length : 64;
        mask : 32;
        payload : Int64.(mul length 8L |> to_int) : string;
        rest : -1 : string |}
-    when max_frame_size = 0 || Int64.(length <= of_int max_frame_size) ->
-      Some (make ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
-  | {| fin : 1;
+      when max_frame_size = 0 || Int64.(length <= of_int max_frame_size) ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+    | {| fin : 1;
        compressed : 1;
        rsv : 2;
        opcode : 4;
-       pad1 : 1 : check( pad1 = true );
+       masked : 1 : check( masked = true );
        pad2 : 7 : check( pad2 = 126 );
        length : 16 : int;
        mask : 32 : int;
        payload : (length * 8) : string;
        rest : -1 : string |}
-    when max_frame_size = 0 || length <= max_frame_size ->
-      Some (make ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
-  | {| fin : 1;
+      when max_frame_size = 0 || length <= max_frame_size ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+    | {| fin : 1;
        compressed : 1;
        rsv : 2;
        opcode : 4;
-       x : 1 : check( x = true );
+       masked : 1 : check( masked = true );
        length : 7 : int;
        mask : 32 : int;
        payload : (length * 8) : string;
        rest : -1 : string |}
-    when length <= 125 && (max_frame_size == 0 || length <= max_frame_size) ->
-      Some (make ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
-  | {| data : -1 : string  |} -> Some (`more (Bytestring.of_string data), "")
+      when length <= 125 && (max_frame_size == 0 || length <= max_frame_size) ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+    | {| _data : -1 : string  |} -> Some (`more (Bytestring.of_string data), "")
 
-let serialize (t : t) =
-  let opcode, fin, compressed, payload =
-    match t with
-    | Continuation { fin; compressed; payload } ->
-        (0x0, fin, compressed, payload)
-    | Text { fin; compressed; payload } -> (0x1, fin, compressed, payload)
-    | Binary { fin; compressed; payload } -> (0x2, fin, compressed, payload)
-    | Connection_close { fin; compressed; payload } ->
-        (0x8, fin, compressed, payload)
-    | Ping -> (0x9, true, false, "")
-    | Pong -> (0xA, true, false, "")
-  in
-  let bytes = String.to_bytes payload |> Bytes.length in
-  let%bitstring header = {| fin : 1; compressed : 1; 0x0 : 2; opcode : 4|} in
-  let mask = function
-    | () when bytes <= 125 -> {%bitstring| 0 : 1; (bytes) : 7 |}
-    | () when bytes <= 65_535 -> {%bitstring| 0 : 1; 126 : 7; (bytes) : 16 |}
-    | () -> {%bitstring| 0 : 1 ; 127 : 7; (Int64.of_int bytes) : 64 |}
-  in
-  let payload = Bitstring.bitstring_of_string payload in
-  let data = Bitstring.concat [ header; mask (); payload ] in
-  let frame = Bitstring.string_of_bitstring data in
-  Bytestring.of_string frame
+  let serialize (t : t) =
+    let opcode, fin, compressed, mask, payload =
+      match t with
+      | Continuation { fin; compressed; payload } ->
+          (0x0, fin, compressed, new_mask (), payload)
+      | Text { fin; compressed; payload } ->
+          (0x1, fin, compressed, new_mask (), payload)
+      | Binary { fin; compressed; payload } ->
+          (0x2, fin, compressed, new_mask (), payload)
+      | Connection_close { fin; compressed; payload } ->
+          (0x8, fin, compressed, new_mask (), payload)
+      | Ping -> (0x9, true, false, new_mask (), "")
+      | Pong -> (0xA, true, false, new_mask (), "")
+    in
+    let bytes = String.to_bytes payload |> Bytes.length in
+
+    let encoded_payload_length = function
+      | () when bytes <= 125 -> {%bitstring| (bytes) : 7 ; (mask) : 32 |}
+      | () when bytes <= 65_535 ->
+          {%bitstring| 126 : 7; (bytes) : 16 ; (mask) : 32 |}
+      | () -> {%bitstring| 127 : 7; (Int64.of_int bytes) : 64 ; (mask) : 32 |}
+    in
+    let%bitstring header =
+      {| fin : 1; compressed : 1 ; 0x0 : 2; opcode : 4 ; 1 : 1 |}
+    in
+
+    let payload = unmask mask payload in
+    let payload = Bitstring.bitstring_of_string payload in
+
+    let data =
+      Bitstring.concat [ header; encoded_payload_length (); payload ]
+    in
+
+    let frame = Bitstring.string_of_bitstring data in
+    let bytestring = Bytestring.of_string frame in
+    bytestring
+end
+
+module Response = struct
+  let deserialize data =
+    let binstr = Bitstring.bitstring_of_string data in
+    match%bitstring binstr with
+    | {| fin : 1;
+       compressed : 1;
+       rsv : 2;
+       opcode : 4;
+       masked : 1 : check (masked = true);
+       pad2 : 7 : check( pad2 = 127 );
+       length : 64;
+       mask : 32;
+       payload : Int64.(mul length 8L |> to_int) : string;
+       rest : -1 : string |}
+      ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+    | {| fin : 1;
+       compressed : 1;
+       rsv : 2;
+       opcode : 4;
+       masked : 1 : check (masked = false);
+       pad2 : 7 : check( pad2 = 127 );
+       length : 64;
+       payload : Int64.(mul length 8L |> to_int) : string;
+       rest : -1 : string |}
+      ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload, rest)
+    | {| fin : 1;
+       compressed : 1;
+       rsv : 2;
+       opcode : 4;
+       masked : 1 : check (masked = true);
+       pad2 : 7 : check( pad2 = 126 );
+       length : 16 : int;
+       mask : 32 : int;
+       payload : (length * 8) : string;
+       rest : -1 : string |}
+      ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+    | {| fin : 1;
+       compressed : 1;
+       rsv : 2;
+       opcode : 4;
+       masked : 1 : check (masked = false);
+       pad2 : 7 : check( pad2 = 126 );
+       length : 16 : int;
+       payload : (length * 8) : string;
+       rest : -1 : string |}
+      ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload, rest)
+    | {| fin : 1;
+       compressed : 1;
+       rsv : 2;
+       opcode : 4;
+       masked : 1 : check (masked = true);
+       length : 7 : int;
+       mask : 32 : int;
+       payload : (length * 8) : string;
+       rest : -1 : string |}
+      when length >= 0 && length <= 125 ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+    | {| fin : 1;
+       compressed : 1;
+       rsv : 2;
+       opcode : 4;
+       masked : 1 : check (masked = false);
+       length : 7 : int;
+       payload : (length * 8) : string;
+       rest : -1 : string |}
+      when length >= 0 && length <= 125 ->
+        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload, rest)
+    | {| _data : -1 : string  |} -> Some (`more (Bytestring.of_string data), "")
+
+  let serialize (t : t) =
+    let compressed = false in
+    let opcode, fin, _compressed, payload =
+      match t with
+      | Continuation { fin; compressed; payload } ->
+          (0x0, fin, compressed, payload)
+      | Text { fin; compressed; payload } -> (0x1, fin, compressed, payload)
+      | Binary { fin; compressed; payload } -> (0x2, fin, compressed, payload)
+      | Connection_close { fin; compressed; payload } ->
+          (0x8, fin, compressed, payload)
+      | Ping -> (0x9, true, false, "")
+      | Pong -> (0xA, true, false, "")
+    in
+    let bytes = String.to_bytes payload |> Bytes.length in
+    trace (fun f -> f "payload has %d bytes" bytes);
+    let%bitstring header = {| fin : 1; compressed : 1; 0x0 : 2; opcode : 4|} in
+    let mask = function
+      | () when bytes <= 125 -> {%bitstring| 0 : 1; (bytes) : 7 |}
+      | () when bytes <= 65_535 -> {%bitstring| 0 : 1; 126 : 7; (bytes) : 16|}
+      | () -> {%bitstring| 0 : 1 ; 127 : 7; (Int64.of_int bytes) : 64 |}
+    in
+    let payload = Bitstring.bitstring_of_string payload in
+    let data = Bitstring.concat [ header; mask (); payload ] in
+    let frame = Bitstring.string_of_bitstring data in
+    let bytestring = Bytestring.of_string frame in
+    bytestring
+end

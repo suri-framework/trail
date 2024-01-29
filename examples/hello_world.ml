@@ -1,3 +1,5 @@
+[@@@warning "-32"]
+
 open Riot
 open Trail
 
@@ -14,8 +16,11 @@ module My_handler = struct
     `push ([], state)
 end
 
-let _trail =
-  let open Router in
+(* $MDX part-begin=main *)
+open Trail
+open Router
+
+let endpoint =
   [
     use (module Logger) Logger.(args ~level:Debug ());
     router
@@ -26,10 +31,7 @@ let _trail =
           [
             get "/version" (fun conn ->
                 Conn.send_response `OK {%b|"none"|} conn);
-            get "/version" (fun conn ->
-                Conn.send_response `OK {%b|"none"|} conn);
-            get "/version" (fun conn ->
-                Conn.send_response `OK {%b|"none"|} conn);
           ];
       ];
   ]
+(* $MDX part-end *)

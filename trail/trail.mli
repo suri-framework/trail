@@ -37,6 +37,7 @@ module Frame : sig
     | Ping
     | Pong
 
+  val equal : t -> t -> bool
   val text : ?fin:bool -> ?compressed:bool -> string -> t
   val binary : ?fin:bool -> ?compressed:bool -> string -> t
   val continuation : ?fin:bool -> ?compressed:bool -> string -> t
@@ -44,27 +45,31 @@ module Frame : sig
   val ping : t
   val pong : t
   val pp : Format.formatter -> t -> unit
-  val unmask : int32 -> string -> string
 
-  val make :
-    fin:bool ->
-    compressed:bool ->
-    rsv:int ->
-    opcode:int ->
-    mask:int32 ->
-    payload:string ->
-    [> `error of [> `Unknown_opcode of int ] | `ok of t ]
+  module Request : sig
+    val deserialize :
+      ?max_frame_size:int ->
+      string ->
+      ([> `error of [> `Unknown_opcode of int ]
+       | `more of Bytestring.t
+       | `ok of t ]
+      * string)
+      option
 
-  val deserialize :
-    ?max_frame_size:int ->
-    string ->
-    ([> `error of [> `Unknown_opcode of int ]
-     | `more of Bytestring.t
-     | `ok of t ]
-    * string)
-    option
+    val serialize : t -> Bytestring.t
+  end
 
-  val serialize : t -> Bytestring.t
+  module Response : sig
+    val deserialize :
+      string ->
+      ([> `error of [> `Unknown_opcode of int ]
+       | `more of Bytestring.t
+       | `ok of t ]
+      * string)
+      option
+
+    val serialize : t -> Bytestring.t
+  end
 end
 
 module Sock : sig
@@ -250,7 +255,6 @@ module Request : sig
     t
 
   val from_http : Http.Request.t -> t
-  val from_httpaf : Httpaf.Request.t -> t
   val pp : Format.formatter -> t -> unit
   val is_keep_alive : t -> bool
 
