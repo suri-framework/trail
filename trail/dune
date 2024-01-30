@@ -11,5 +11,4 @@
   calendar
   ptime
   uuidm
-  http
-  httpaf))
+  http))
