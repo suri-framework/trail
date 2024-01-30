@@ -8,7 +8,6 @@
   atacama
   telemetry
   bitstring
-  calendar
   ptime
   uuidm
   http))
