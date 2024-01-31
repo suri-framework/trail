@@ -1,6 +1,7 @@
 (lang dune 3.11)
 (using mdx 0.4)
 (using melange 0.1)
+(using dune_site 0.1)
 
 (name trail)
 
@@ -45,8 +46,10 @@
   (magic-mime (>= "1.3.1"))
   (riot (>= "0.0.8"))
   (trail (>= "0.0.1"))
+  (dune-site (>= "3.12.2"))
   melange
   dune)
+ (sites (share static))
  (tags
   (composable "web framework" http websockets ws riot multicore)))
 

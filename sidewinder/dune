@@ -1,9 +1,9 @@
 (library
  (public_name sidewinder)
- (modules sidewinder sidewinder_default html)
+ (modules sidewinder sidewinder_default html sidewinder_js)
  (preprocess
   (pps bytestring.ppx serde_derive))
- (libraries trail serde serde_json))
+ (libraries trail serde serde_json dune-site))
 
 (melange.emit
  (target js)
@@ -12,3 +12,24 @@
   (pps melange.ppx))
  (module_systems
   (es6 mjs)))
+
+(rule
+ (target ./sidewinder_web_runtime.mjs)
+ (deps ./js/sidewinder/sidewinder_web_runtime.mjs)
+ (mode promote)
+ (action
+  (copy
+   ./js/sidewinder/sidewinder_web_runtime.mjs
+   %{target}
+   )))
+
+(install
+ (package sidewinder)
+ (section
+  (site
+   (sidewinder static)))
+ (files ./sidewinder_web_runtime.mjs))
+
+(generate_sites_module 
+  (module sidewinder_js)
+  (sites sidewinder))
