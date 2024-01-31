@@ -477,6 +477,34 @@ module Static : sig
   val call : Conn.t -> state -> Conn.t
 end
 
+module CORS : sig
+  type args = {
+    origin : string;
+    credentials : bool;
+    max_age : int64;
+    headers : string list;
+    expose : string list;
+    methods : string list;
+    send_preflight_response : bool;
+  }
+
+  type state = args
+
+  val config :
+    ?origin:string ->
+    ?credentials:bool ->
+    ?max_age:int64 ->
+    ?headers:string list ->
+    ?expose:string list ->
+    ?methods:string list ->
+    ?send_preflight_response:bool ->
+    unit ->
+    args
+
+  val init : args -> state
+  val call : Conn.t -> state -> Conn.t
+end
+
 module Router : sig
   module type Resource = sig
     val create : Conn.t -> Conn.t

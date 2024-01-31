@@ -30,3 +30,4 @@ module Router = Router
 module Logger = Req_logger
 module Request_id = Request_id
 module Static = Static
+module CORS = Cors

@@ -2,7 +2,7 @@ open Riot
 module Conn = Connection
 
 open Riot.Logger.Make (struct
-  let namespace = [ "static" ]
+  let namespace = [ "trail"; "static" ]
 end)
 
 type args = { root : string; prefix : string }
