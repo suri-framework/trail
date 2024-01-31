@@ -18,12 +18,7 @@
  (deps ./js/sidewinder/sidewinder_web_runtime.mjs)
  (mode promote)
  (action
-  (run 
-    ocaml-crunch 
-    ./js/sidewinder
-    --mode=plain
-    --silent
-    --output=%{target})))
+  (run ocaml-crunch ./js/sidewinder --mode=plain --silent --output=%{target})))
 
 ; (rule
 ;  (target ./sidewinder_web_runtime.mjs)

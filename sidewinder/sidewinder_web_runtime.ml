@@ -71,9 +71,15 @@ let handle_event socket element e =
   Element.innerHTML element diff;
   rebind socket element
 
+let url : string -> string =
+  {%raw| function (path) {
+  let protocol = window.location.protocol.replace("http", "ws");
+  return `${protocol}//${window.location.host}${path}`
+} |}
+
 let spawn element_id path =
   let element = Document.(getElementById document element_id) in
-  let url = "ws://192.168.1.19:8080" ^ path in
+  let url = url path in
   let socket = WebSocket.make url in
   WebSocket.addEventListener socket "open" @@ mount socket;
   WebSocket.addEventListener socket "message" @@ handle_event socket element
