@@ -35,6 +35,21 @@
  (tags
   (composable "web framework" http websockets ws riot multicore)))
 
+(package
+ (name sidewinder)
+ (synopsis "")
+ (description "")
+ (depends
+  (mdx (and :with-test (>= "2.3.1")))
+  (ocaml (>= "5.1.0"))
+  (magic-mime (>= "1.3.1"))
+  (riot (>= "0.0.8"))
+  (trail (>= "0.0.1"))
+  melange
+  dune)
+ (tags
+  (composable "web framework" http websockets ws riot multicore)))
+
 (dialect
  (name mlx)
  (implementation

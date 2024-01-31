@@ -1,0 +1,14 @@
+(library
+ (public_name sidewinder)
+ (modules sidewinder sidewinder_default html)
+ (preprocess
+  (pps bytestring.ppx serde_derive))
+ (libraries trail serde serde_json))
+
+(melange.emit
+ (target js)
+ (modules sidewinder_web_runtime)
+ (preprocess
+  (pps melange.ppx))
+ (module_systems
+  (es6 mjs)))
