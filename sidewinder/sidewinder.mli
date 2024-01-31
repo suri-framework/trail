@@ -52,6 +52,14 @@ module Mount : functor (C : Intf) -> sig
     Riot.Message.t -> 'a -> [> `ok of 'a | `push of Trail.Frame.t list * 'a ]
 end
 
+module Static : sig
+  type args = unit
+  type state = unit
+
+  val init : unit -> unit
+  val call : Trail.Conn.t -> unit -> Trail.Conn.t
+end
+
 val live :
   'args.
   string -> (module Intf with type args = 'args) -> 'args -> Trail.Router.t

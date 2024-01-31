@@ -181,3 +181,41 @@ end
 let live (type args) path (module C : Intf with type args = args) (args : args)
     =
   Trail.Router.socket path (module Mount (C)) args
+
+module Static = struct
+  open Riot
+  open Trail
+
+  open Riot.Logger.Make (struct
+    let namespace = [ "sidewinder"; "static" ]
+  end)
+
+  type args = unit
+  type state = unit
+
+  let init () = ()
+
+  let call (conn : Conn.t) () =
+    let rel_path = conn.req.path |> String.concat Stdlib.Filename.dir_sep in
+    debug (fun f -> f "testing file at %S" rel_path);
+    if String.starts_with ~prefix:"@sidewinder_static/" rel_path then (
+      let static = Sidewinder_js.Sites.static |> List.hd in
+      let abs_path =
+        Stringext.replace_all ~pattern:"@sidewinder_static" ~with_:static
+          rel_path
+      in
+      debug (fun f -> f "serving file at %S" abs_path);
+      let stat = File.stat abs_path in
+      let file = File.open_read abs_path in
+      let reader = File.to_reader file in
+      let data =
+        Bytestring.with_bytes ~capacity:stat.st_size (IO.read reader)
+        |> Result.get_ok
+      in
+      File.close file;
+      let mime_type = Magic_mime.lookup abs_path in
+      conn
+      |> Conn.with_header "content-type" mime_type
+      |> Conn.send_response `OK data)
+    else conn
+end

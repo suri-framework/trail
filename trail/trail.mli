@@ -473,8 +473,8 @@ module Static : sig
   type args = { root : string; prefix : string }
   type state = args
 
-  val init : 'a -> 'a
-  val call : Conn.t -> args -> Conn.t
+  val init : args -> state
+  val call : Conn.t -> state -> Conn.t
 end
 
 module Router : sig

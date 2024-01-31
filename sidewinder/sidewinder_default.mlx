@@ -7,7 +7,7 @@ let mount ~path () =
     <div id=id></div>
     <script type_="module">
     (Format.sprintf {|
-      import * as SidewinderComponent from "/_static/_build/default/bazaar_live/js/bazaar_live/sidewinder_web_runtime.mjs";
+      import * as SidewinderComponent from "/@sidewinder_static/sidewinder_web_runtime.mjs";
       SidewinderComponent.spawn(%S, %S);
       |} id path |> string)
     </script>

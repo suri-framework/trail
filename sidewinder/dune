@@ -18,10 +18,7 @@
  (deps ./js/sidewinder/sidewinder_web_runtime.mjs)
  (mode promote)
  (action
-  (copy
-   ./js/sidewinder/sidewinder_web_runtime.mjs
-   %{target}
-   )))
+  (copy ./js/sidewinder/sidewinder_web_runtime.mjs %{target})))
 
 (install
  (package sidewinder)
@@ -30,6 +27,6 @@
    (sidewinder static)))
  (files ./sidewinder_web_runtime.mjs))
 
-(generate_sites_module 
-  (module sidewinder_js)
-  (sites sidewinder))
+(generate_sites_module
+ (module sidewinder_js)
+ (sites sidewinder))
