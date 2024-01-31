@@ -3,7 +3,7 @@
  (modules sidewinder sidewinder_default html sidewinder_js)
  (preprocess
   (pps bytestring.ppx serde_derive))
- (libraries trail serde serde_json dune-site))
+ (libraries trail serde serde_json))
 
 (melange.emit
  (target js)
@@ -14,19 +14,31 @@
   (es6 mjs)))
 
 (rule
- (target ./sidewinder_web_runtime.mjs)
+ (target ./sidewinder_js.ml)
  (deps ./js/sidewinder/sidewinder_web_runtime.mjs)
  (mode promote)
  (action
-  (copy ./js/sidewinder/sidewinder_web_runtime.mjs %{target})))
+  (run 
+    ocaml-crunch 
+    ./js/sidewinder
+    --mode=plain
+    --silent
+    --output=%{target})))
 
-(install
- (package sidewinder)
- (section
-  (site
-   (sidewinder static)))
- (files ./sidewinder_web_runtime.mjs))
+; (rule
+;  (target ./sidewinder_web_runtime.mjs)
+;  (deps ./js/sidewinder/sidewinder_web_runtime.mjs)
+;  (mode promote)
+;  (action
+;   (copy ./js/sidewinder/sidewinder_web_runtime.mjs %{target})))
 
-(generate_sites_module
- (module sidewinder_js)
- (sites sidewinder))
+; (install
+;  (package sidewinder)
+;  (section
+;   (site
+;    (sidewinder static)))
+;  (files ./sidewinder_web_runtime.mjs))
+
+; (generate_sites_module
+;  (module sidewinder_js)
+;  (sites sidewinder))
