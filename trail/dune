@@ -3,11 +3,4 @@
  (name trail)
  (preprocess
   (pps ppx_bitstring bytestring.ppx))
- (libraries
-  riot
-  atacama
-  telemetry
-  bitstring
-  ptime
-  uuidm
-  http))
+ (libraries riot atacama telemetry bitstring ptime uuidm magic-mime http))

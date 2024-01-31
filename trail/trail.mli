@@ -469,6 +469,14 @@ module Logger : sig
   val args : level:level -> unit -> args
 end
 
+module Static : sig
+  type args = { root : string; prefix : string }
+  type state = args
+
+  val init : 'a -> 'a
+  val call : Conn.t -> args -> Conn.t
+end
+
 module Router : sig
   module type Resource = sig
     val create : Conn.t -> Conn.t

@@ -29,3 +29,4 @@ let handler adapter pipeline socket (req : Request.t) =
 module Router = Router
 module Logger = Req_logger
 module Request_id = Request_id
+module Static = Static
