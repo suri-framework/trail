@@ -177,3 +177,7 @@ module Mount (C : Intf) = struct
         `push ([ frame ], state)
     | _ -> `ok state
 end
+
+let live (type args) path (module C : Intf with type args = args) (args : args)
+    =
+  Trail.Router.socket path (module Mount (C)) args

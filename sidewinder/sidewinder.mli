@@ -51,3 +51,7 @@ module Mount : functor (C : Intf) -> sig
   val handle_message :
     Riot.Message.t -> 'a -> [> `ok of 'a | `push of Trail.Frame.t list * 'a ]
 end
+
+val live :
+  'args.
+  string -> (module Intf with type args = 'args) -> 'args -> Trail.Router.t
