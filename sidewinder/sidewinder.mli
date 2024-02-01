@@ -7,7 +7,9 @@ module Html : sig
   type 'msg t =
     | El of { tag : string; attrs : 'msg attr list; children : 'msg t list }
     | Text of string
+    | Splat of 'msg t list
 
+  val list : 'msg t list -> 'msg t
   val button : on_click:'a attr -> children:'a t list -> unit -> 'a t
   val html : children:'a t list -> unit -> 'a t
   val body : children:'a t list -> unit -> 'a t
@@ -29,7 +31,7 @@ module type Intf = sig
 
   val init : args -> state
   val handle_action : state -> action -> state
-  val render : state:state -> action Html.t
+  val render : state:state -> unit -> action Html.t
 end
 
 module Default : sig

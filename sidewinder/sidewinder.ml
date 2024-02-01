@@ -22,7 +22,7 @@ module type Intf = sig
 
   val init : args -> state
   val handle_action : state -> action -> state
-  val render : state:state -> action Html.t
+  val render : state:state -> unit -> action Html.t
 end
 
 module Default = Sidewinder_default
@@ -32,7 +32,7 @@ module Component = struct
     ref : 'action Ref.t;
     state : 'state;
     handle_action : 'state -> 'action -> 'state;
-    render : state:'state -> 'action Html.t;
+    render : state:'state -> unit -> 'action Html.t;
     handlers : (string, Event.t -> 'action) Hashtbl.t;
     renderer : Pid.t;
   }
@@ -49,6 +49,8 @@ module Component = struct
   let rec update_handlers ?(idx = 0) t (html : 'action Html.t) =
     match html with
     | Html.Text _ -> html
+    | Html.Splat els ->
+        Html.Splat (List.mapi (fun idx el -> update_handlers ~idx t el) els)
     | Html.El { tag; attrs; children } ->
         trace (fun f -> f "found tag %S with %d attrs" tag (List.length attrs));
         let attrs =
@@ -85,7 +87,7 @@ module Component = struct
   and handle_action t action =
     trace (fun f -> f "%a is handling action" Pid.pp (self ()));
     let state = t.handle_action t.state action in
-    let html = t.render ~state in
+    let html = t.render ~state () in
     let html = update_handlers t html in
     render t html;
     loop { t with state }
@@ -101,7 +103,7 @@ module Component = struct
 
   and handle_mount t =
     trace (fun f -> f "%a is mounting" Pid.pp (self ()));
-    let html = t.render ~state:t.state in
+    let html = t.render ~state:t.state () in
     let html = update_handlers t html in
     render t html;
     loop t

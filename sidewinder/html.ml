@@ -6,6 +6,9 @@ let attr_type typ = `attr ("type", typ)
 type 'msg t =
   | El of { tag : string; attrs : 'msg attr list; children : 'msg t list }
   | Text of string
+  | Splat of 'msg t list
+
+let list els = Splat els
 
 let button ~on_click ~children () =
   El { tag = "button"; attrs = [ on_click ]; children }
@@ -40,6 +43,7 @@ let int (x : int) = Text (Int.to_string x)
 let rec to_string (t : 'msg t) =
   match t with
   | Text str -> str
+  | Splat els -> String.concat "\n" (List.map to_string els)
   | El { tag; children; attrs } ->
       "<" ^ tag ^ " " ^ attrs_to_string attrs ^ ">"
       ^ (List.map to_string children |> String.concat "\n")
