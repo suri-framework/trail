@@ -59,3 +59,19 @@ let event_handlers attrs =
   List.filter_map
     (fun attr -> match attr with `event fn -> Some fn | _ -> None)
     attrs
+
+let rec map_action fn t =
+  match t with
+  | Text string -> Text string
+  | Splat els -> Splat (List.map (map_action fn) els)
+  | El { tag; children; attrs } ->
+      let children = List.map (map_action fn) children in
+      let attrs =
+        List.map
+          (fun attr ->
+            match attr with
+            | `event handler -> `event (fun ev -> fn (handler ev))
+            | `attr (k, v) -> `attr (k, v))
+          attrs
+      in
+      El { tag; children; attrs }

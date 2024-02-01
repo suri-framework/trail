@@ -22,6 +22,7 @@ module Html : sig
   val to_string : 'msg t -> string
   val attrs_to_string : 'msg attr list -> string
   val event_handlers : [> `event of 'a ] list -> 'a list
+  val map_action : ('msg_a -> 'msg_b) -> 'msg_a t -> 'msg_b t
 end
 
 module type Intf = sig
