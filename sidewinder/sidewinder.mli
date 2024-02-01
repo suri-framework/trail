@@ -29,7 +29,7 @@ module type Intf = sig
 
   val init : args -> state
   val handle_action : state -> action -> state
-  val render : state -> action Html.t
+  val render : state:state -> action Html.t
 end
 
 module Default : sig
