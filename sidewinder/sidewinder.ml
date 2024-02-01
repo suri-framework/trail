@@ -44,14 +44,13 @@ module Component = struct
 
   let render t html =
     let str = Html.to_string html in
-    error (fun f -> f " rendering: %S" str);
     send t.renderer (Render str)
 
   let rec update_handlers ?(idx = 0) t (html : 'action Html.t) =
     match html with
     | Html.Text _ -> html
     | Html.El { tag; attrs; children } ->
-        error (fun f -> f "found tag %S with %d attrs" tag (List.length attrs));
+        trace (fun f -> f "found tag %S with %d attrs" tag (List.length attrs));
         let attrs =
           match Html.event_handlers attrs with
           | [] -> attrs
@@ -63,7 +62,7 @@ module Component = struct
                     "sidewinder-handler-" ^ Int.to_string idx ^ "-"
                     ^ Int.to_string n
                   in
-                  error (fun f -> f "found handler %S" id);
+                  trace (fun f -> f "found handler %S" id);
                   Hashtbl.replace t.handlers id handler;
                   attrs := `attr ("data-sidewinder-id", id) :: !attrs;
                   ())
@@ -84,7 +83,7 @@ module Component = struct
     | _ -> loop t
 
   and handle_action t action =
-    error (fun f -> f "%a is handling action" Pid.pp (self ()));
+    trace (fun f -> f "%a is handling action" Pid.pp (self ()));
     let state = t.handle_action t.state action in
     let html = t.render state in
     let html = update_handlers t html in
@@ -92,7 +91,7 @@ module Component = struct
     loop { t with state }
 
   and handle_event t id event =
-    error (fun f -> f "%a is handling event" Pid.pp (self ()));
+    trace (fun f -> f "%a is handling event" Pid.pp (self ()));
     match Hashtbl.find_opt t.handlers id with
     | None -> loop t
     | Some handler ->
@@ -101,7 +100,7 @@ module Component = struct
         loop t
 
   and handle_mount t =
-    error (fun f -> f "%a is mounting" Pid.pp (self ()));
+    trace (fun f -> f "%a is mounting" Pid.pp (self ()));
     let html = t.render t.state in
     let html = update_handlers t html in
     render t html;
@@ -148,7 +147,7 @@ module Mount (C : Intf) = struct
   let handle_frame (frame : Frame.t) _conn state =
     match frame with
     | Frame.Text { payload; _ } -> (
-        error (fun f -> f "got event: %S" payload);
+        trace (fun f -> f "got event: %S" payload);
         match Serde_json.of_string deserialize_event payload with
         | Ok (Event (id, event)) ->
             Component.event state.component id event;
@@ -165,10 +164,9 @@ module Mount (C : Intf) = struct
     | _ -> `ok state
 
   let handle_message msg state =
-    error (fun f -> f "handle_message");
+    trace (fun f -> f "handle_message");
     match msg with
     | Render html ->
-        error (fun f -> f "rendering: %S" html);
         let event =
           Serde_json.to_string_pretty serialize_event (Patch html)
           |> Result.get_ok
