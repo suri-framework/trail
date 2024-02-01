@@ -77,9 +77,12 @@ let url : string -> string =
   return `${protocol}//${window.location.host}${path}`
 } |}
 
-let spawn element_id path =
+let spawnRemote url element_id =
   let element = Document.(getElementById document element_id) in
-  let url = url path in
   let socket = WebSocket.make url in
   WebSocket.addEventListener socket "open" @@ mount socket;
   WebSocket.addEventListener socket "message" @@ handle_event socket element
+
+let spawn element_id path =
+  let url = url path in
+  spawnRemote url element_id
