@@ -16,11 +16,10 @@ end
 type Message.t += Render of string
 
 module type Intf = sig
-  type args
   type state
   type action
 
-  val init : args -> state
+  val mount : Conn.t -> state
   val handle_action : state -> action -> state
   val render : state:state -> unit -> action Html.t
 end
@@ -28,7 +27,7 @@ end
 module Default = Sidewinder_default
 
 module Component = struct
-  type ('args, 'state, 'action) t = {
+  type ('state, 'action) t = {
     ref : 'action Ref.t;
     state : 'state;
     handle_action : 'state -> 'action -> 'state;
@@ -74,7 +73,7 @@ module Component = struct
         let children = List.mapi (fun idx -> update_handlers ~idx t) children in
         Html.El { tag; attrs; children }
 
-  let rec loop (t : ('args, 'state', 'action) t) =
+  let rec loop (t : ('state', 'action) t) =
     match receive () with
     | Mount -> handle_mount t
     | Event { id; event } -> handle_event t id event
@@ -108,15 +107,14 @@ module Component = struct
     render t html;
     loop t
 
-  let start_link (type args) renderer (module C : Intf with type args = args)
-      (args : args) =
+  let start_link renderer (module C : Intf) =
     let pid =
       spawn_link (fun () ->
           loop
             {
               ref = Ref.make ();
               renderer;
-              state = C.init args;
+              state = C.mount (Obj.magic 2112);
               handle_action = C.handle_action;
               render = C.render;
               handlers = Hashtbl.create 0;
@@ -136,14 +134,12 @@ type event = Mount | Event of string * Event.t | Patch of string
 module Mount (C : Intf) = struct
   include Sock.Default
 
-  type args = C.args
+  type args = unit
   type state = { component : Pid.t }
 
-  let init args =
+  let init () =
     let this = self () in
-    let component =
-      Component.start_link this (module C) args |> Result.get_ok
-    in
+    let component = Component.start_link this (module C) |> Result.get_ok in
     `ok { component }
 
   let handle_frame (frame : Frame.t) _conn state =
@@ -178,9 +174,7 @@ module Mount (C : Intf) = struct
     | _ -> `ok state
 end
 
-let live (type args) path (module C : Intf with type args = args) (args : args)
-    =
-  Trail.Router.socket path (module Mount (C)) args
+let live path (module C : Intf) = Trail.Router.socket path (module Mount (C)) ()
 
 module Static = struct
   open Riot

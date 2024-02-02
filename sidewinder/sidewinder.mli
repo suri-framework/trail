@@ -34,11 +34,10 @@ module Html : sig
 end
 
 module type Intf = sig
-  type args
   type state
   type action
 
-  val init : args -> state
+  val mount : Trail.Conn.t -> state
   val handle_action : state -> action -> state
   val render : state:state -> unit -> action Html.t
 end
@@ -47,11 +46,10 @@ module Default : sig
   val mount : path:string -> unit -> 'action Html.t
 end
 
-module Mount : functor (C : Intf) -> sig
-  type args = C.args
+module Mount : functor (_ : Intf) -> sig
   type state = { component : Riot.Pid.t }
 
-  val init : C.args -> [> `ok of state ]
+  val init : unit -> [> `ok of state ]
 
   val handle_frame :
     Trail.Frame.t ->
@@ -71,6 +69,4 @@ module Static : sig
   val call : Trail.Conn.t -> unit -> Trail.Conn.t
 end
 
-val live :
-  'args.
-  string -> (module Intf with type args = 'args) -> 'args -> Trail.Router.t
+val live : string -> (module Intf) -> Trail.Router.t
