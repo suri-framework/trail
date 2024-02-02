@@ -1,5 +1,8 @@
-type 'msg attr = [ `event of string -> 'msg | `attr of string * string ]
+type 'msg attr =
+  [ `event of string * (string -> 'msg) | `attr of string * string ]
 
+let event name fn = `event (name, fn)
+let on_click fn = event "click" fn
 let attr name value = `attr (name, value)
 let attr_id v = attr "id" v
 let attr_type v = attr "type" v
@@ -44,7 +47,6 @@ let script ?src ?id ?type_ ?(children = []) () =
       children;
     }
 
-let event fn = `event fn
 let string (str : string) = Text str
 let int (x : int) = Text (Int.to_string x)
 
@@ -65,7 +67,8 @@ and attrs_to_string attrs =
 
 let event_handlers attrs =
   List.filter_map
-    (fun attr -> match attr with `event fn -> Some fn | _ -> None)
+    (fun attr ->
+      match attr with `event (name, fn) -> Some (name, fn) | _ -> None)
     attrs
 
 let rec map_action fn t =
@@ -78,7 +81,7 @@ let rec map_action fn t =
         List.map
           (fun attr ->
             match attr with
-            | `event handler -> `event (fun ev -> fn (handler ev))
+            | `event (name, handler) -> `event (name, fun ev -> fn (handler ev))
             | `attr (k, v) -> `attr (k, v))
           attrs
       in

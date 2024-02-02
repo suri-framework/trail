@@ -58,14 +58,19 @@ module Component = struct
           | handlers ->
               let attrs = ref attrs in
               List.iteri
-                (fun n handler ->
+                (fun n (name, handler) ->
                   let id =
                     "sidewinder-handler-" ^ Int.to_string idx ^ "-"
                     ^ Int.to_string n
                   in
                   trace (fun f -> f "found handler %S" id);
                   Hashtbl.replace t.handlers id handler;
-                  attrs := `attr ("data-sidewinder-id", id) :: !attrs;
+                  attrs :=
+                    Html.
+                      [
+                        attr "data-sw-event" name; attr "data-sidewinder-id" id;
+                      ]
+                    @ !attrs;
                   ())
                 handlers;
               !attrs

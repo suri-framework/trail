@@ -1,6 +1,8 @@
 module Html : sig
-  type 'msg attr = [ `attr of string * string | `event of string -> 'msg ]
+  type 'msg attr =
+    [ `attr of string * string | `event of string * (string -> 'msg) ]
 
+  val attr : string -> string -> 'msg attr
   val attr_id : 'a -> [> `attr of string * 'a ]
   val attr_type : 'a -> [> `attr of string * 'a ]
 
@@ -31,13 +33,14 @@ module Html : sig
     unit ->
     'a t
 
-  val event : 'a -> [> `event of 'a ]
+  val event : string -> (string -> 'msg) -> 'msg attr
   val string : string -> 'a t
   val int : int -> 'a t
   val to_string : 'msg t -> string
   val attrs_to_string : 'msg attr list -> string
-  val event_handlers : [> `event of 'a ] list -> 'a list
+  val event_handlers : 'msg attr list -> (string * (string -> 'msg)) list
   val map_action : ('msg_a -> 'msg_b) -> 'msg_a t -> 'msg_b t
+  val on_click : (string -> 'msg) -> 'msg attr
 end
 
 module type Intf = sig
