@@ -18,11 +18,13 @@ let button ~on_click ?(children = []) () =
 let html ?(children = []) () = El { tag = "html"; attrs = []; children }
 let body ?(children = []) () = El { tag = "body"; attrs = []; children }
 
-let div ?id ?(children = []) () =
+let div ?(attrs = []) ?id ?(children = []) () =
   El
     {
       tag = "div";
-      attrs = [ Option.map attr_id id ] |> List.filter_map Fun.id;
+      attrs =
+        List.filter_map Fun.id [ Option.map attr_id id ]
+        @ List.map (fun (k, v) -> `attr (k, v)) attrs;
       children;
     }
 

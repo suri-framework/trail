@@ -13,7 +13,14 @@ module Html : sig
   val button : on_click:'a attr -> ?children:'a t list -> unit -> 'a t
   val html : ?children:'a t list -> unit -> 'a t
   val body : ?children:'a t list -> unit -> 'a t
-  val div : ?id:string -> ?children:'a t list -> unit -> 'a t
+
+  val div :
+    ?attrs:(string * string) list ->
+    ?id:string ->
+    ?children:'a t list ->
+    unit ->
+    'a t
+
   val span : ?children:'a t list -> unit -> 'a t
 
   val script :
