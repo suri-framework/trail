@@ -10,17 +10,17 @@ module Html : sig
     | Splat of 'msg t list
 
   val list : 'msg t list -> 'msg t
-  val button : on_click:'a attr -> children:'a t list -> unit -> 'a t
-  val html : children:'a t list -> unit -> 'a t
-  val body : children:'a t list -> unit -> 'a t
-  val div : ?id:string -> children:'a t list -> unit -> 'a t
-  val span : children:'a t list -> unit -> 'a t
+  val button : on_click:'a attr -> ?children:'a t list -> unit -> 'a t
+  val html : ?children:'a t list -> unit -> 'a t
+  val body : ?children:'a t list -> unit -> 'a t
+  val div : ?id:string -> ?children:'a t list -> unit -> 'a t
+  val span : ?children:'a t list -> unit -> 'a t
 
   val script :
     ?src:string ->
     ?id:string ->
     ?type_:string ->
-    children:'a t list ->
+    ?children:'a t list ->
     unit ->
     'a t
 

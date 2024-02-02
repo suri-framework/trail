@@ -12,13 +12,13 @@ type 'msg t =
 
 let list els = Splat els
 
-let button ~on_click ~children () =
+let button ~on_click ?(children = []) () =
   El { tag = "button"; attrs = [ on_click ]; children }
 
-let html ~children () = El { tag = "html"; attrs = []; children }
-let body ~children () = El { tag = "body"; attrs = []; children }
+let html ?(children = []) () = El { tag = "html"; attrs = []; children }
+let body ?(children = []) () = El { tag = "body"; attrs = []; children }
 
-let div ?id ~children () =
+let div ?id ?(children = []) () =
   El
     {
       tag = "div";
@@ -26,9 +26,9 @@ let div ?id ~children () =
       children;
     }
 
-let span ~children () = El { tag = "span"; attrs = []; children }
+let span ?(children = []) () = El { tag = "span"; attrs = []; children }
 
-let script ?src ?id ?type_ ~children () =
+let script ?src ?id ?type_ ?(children = []) () =
   El
     {
       tag = "script";
