@@ -15,7 +15,15 @@ module Html : sig
   val body : children:'a t list -> unit -> 'a t
   val div : ?id:string -> children:'a t list -> unit -> 'a t
   val span : children:'a t list -> unit -> 'a t
-  val script : ?id:string -> ?type_:string -> children:'a t list -> unit -> 'a t
+
+  val script :
+    ?src:string ->
+    ?id:string ->
+    ?type_:string ->
+    children:'a t list ->
+    unit ->
+    'a t
+
   val event : 'a -> [> `event of 'a ]
   val string : string -> 'a t
   val int : int -> 'a t

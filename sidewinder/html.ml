@@ -1,7 +1,9 @@
 type 'msg attr = [ `event of string -> 'msg | `attr of string * string ]
 
-let attr_id id = `attr ("id", id)
-let attr_type typ = `attr ("type", typ)
+let attr name value = `attr (name, value)
+let attr_id v = attr "id" v
+let attr_type v = attr "type" v
+let attr_src v = attr "src" v
 
 type 'msg t =
   | El of { tag : string; attrs : 'msg attr list; children : 'msg t list }
@@ -26,12 +28,16 @@ let div ?id ~children () =
 
 let span ~children () = El { tag = "span"; attrs = []; children }
 
-let script ?id ?type_ ~children () =
+let script ?src ?id ?type_ ~children () =
   El
     {
       tag = "script";
       attrs =
-        [ Option.map attr_id id; Option.map attr_type type_ ]
+        [
+          Option.map attr_id id;
+          Option.map attr_type type_;
+          Option.map attr_src src;
+        ]
         |> List.filter_map Fun.id;
       children;
     }
