@@ -125,9 +125,11 @@ module Request = struct
        length : 64;
        mask : 32;
        payload : Int64.(mul length 8L |> to_int) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       when max_frame_size = 0 || Int64.(length <= of_int max_frame_size) ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -137,9 +139,11 @@ module Request = struct
        length : 16 : int;
        mask : 32 : int;
        payload : (length * 8) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       when max_frame_size = 0 || length <= max_frame_size ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -148,10 +152,13 @@ module Request = struct
        length : 7 : int;
        mask : 32 : int;
        payload : (length * 8) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       when length <= 125 && (max_frame_size == 0 || length <= max_frame_size) ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
-    | {| _data : -1 : string  |} -> Some (`more (Bytestring.of_string data), "")
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload,
+            Bitstring.string_of_bitstring rest )
+    | {| _data : -1 : bitstring  |} ->
+        Some (`more (Bytestring.of_string data), "")
 
   let serialize (t : t) =
     let opcode, fin, compressed, mask, payload =
@@ -204,9 +211,11 @@ module Response = struct
        length : 64;
        mask : 32;
        payload : Int64.(mul length 8L |> to_int) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -215,9 +224,11 @@ module Response = struct
        pad2 : 7 : check( pad2 = 127 );
        length : 64;
        payload : Int64.(mul length 8L |> to_int) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -227,9 +238,11 @@ module Response = struct
        length : 16 : int;
        mask : 32 : int;
        payload : (length * 8) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -238,9 +251,11 @@ module Response = struct
        pad2 : 7 : check( pad2 = 126 );
        length : 16 : int;
        payload : (length * 8) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -249,9 +264,11 @@ module Response = struct
        length : 7 : int;
        mask : 32 : int;
        payload : (length * 8) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       when length >= 0 && length <= 125 ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload, rest)
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask ~payload,
+            Bitstring.string_of_bitstring rest )
     | {| fin : 1;
        compressed : 1;
        rsv : 2;
@@ -259,10 +276,13 @@ module Response = struct
        masked : 1 : check (masked = false);
        length : 7 : int;
        payload : (length * 8) : string;
-       rest : -1 : string |}
+       rest : -1 : bitstring |}
       when length >= 0 && length <= 125 ->
-        Some (make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload, rest)
-    | {| _data : -1 : string  |} -> Some (`more (Bytestring.of_string data), "")
+        Some
+          ( make ~masked ~fin ~compressed ~rsv ~opcode ~mask:0l ~payload,
+            Bitstring.string_of_bitstring rest )
+    | {| _data : -1 : bitstring  |} ->
+        Some (`more (Bytestring.of_string data), "")
 
   let serialize (t : t) =
     let compressed = false in

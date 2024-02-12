@@ -1,3 +1,9 @@
 (test
  (name frame_serde_test)
+ (modules frame_serde_test)
  (libraries trail qcheck))
+
+(test
+  (name multi_frame_test)
+  (modules multi_frame_test)
+  (libraries trail alcotest))
