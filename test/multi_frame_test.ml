@@ -45,8 +45,6 @@ let () =
     [
       ( "start",
         [
-          test_case "alcotest" `Quick (fun () ->
-              Alcotest.(check int "1 + 1 = 2" 2 (1 + 1)));
           test_case "single pong" `Quick test_single_pong;
           test_case "pong + other msg" `Quick test_pong_with_other_message;
         ] );
