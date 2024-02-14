@@ -10,7 +10,10 @@ module Html = Html
 module Event = struct
   open Serde
 
-  type t = string [@@deriving deserializer, serializer]
+  type t = string
+
+  let serialize_t = Ser.(serializer @@ string)
+  let deserialize_t = De.(deserializer @@ string)
 end
 
 type Message.t += Render of string
@@ -131,10 +134,8 @@ module Component = struct
   let event pid id event = send pid (Event { id; event })
 end
 
-open Serde
-
 type event = Mount | Event of string * Event.t | Patch of string
-[@@deriving deserializer, serializer]
+[@@deriving deserialize, serialize]
 
 module Mount (C : Intf) = struct
   include Sock.Default
@@ -171,7 +172,7 @@ module Mount (C : Intf) = struct
     match msg with
     | Render html ->
         let event =
-          Serde_json.to_string_pretty serialize_event (Patch html)
+          Serde_json.to_string serialize_event (Patch html)
           |> Result.get_ok
         in
         let frame = Frame.text ~fin:true event in
