@@ -31,7 +31,13 @@ let div ?(attrs = []) ?id ?(children = []) () =
       children;
     }
 
+let h1 ?(children = []) () = El { tag = "h1"; attrs = []; children }
+let h2 ?(children = []) () = El { tag = "h2"; attrs = []; children }
+let h3 ?(children = []) () = El { tag = "h3"; attrs = []; children }
+let h5 ?(children = []) () = El { tag = "h4"; attrs = []; children }
+let h6 ?(children = []) () = El { tag = "h5"; attrs = []; children }
 let span ?(children = []) () = El { tag = "span"; attrs = []; children }
+let p ?(children = []) () = El { tag = "p"; attrs = []; children }
 
 let script ?src ?id ?type_ ?(children = []) () =
   El
