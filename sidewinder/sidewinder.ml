@@ -82,7 +82,7 @@ module Component = struct
         Html.El { tag; attrs; children }
 
   let rec loop (t : ('state', 'action) t) =
-    match receive () with
+    match receive_any () with
     | Mount -> handle_mount t
     | Event { id; event } -> handle_event t id event
     | Dispatch (ref, action) -> (
@@ -172,8 +172,7 @@ module Mount (C : Intf) = struct
     match msg with
     | Render html ->
         let event =
-          Serde_json.to_string serialize_event (Patch html)
-          |> Result.get_ok
+          Serde_json.to_string serialize_event (Patch html) |> Result.get_ok
         in
         let frame = Frame.text ~fin:true event in
         `push ([ frame ], state)

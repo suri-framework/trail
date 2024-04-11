@@ -4,6 +4,6 @@
  (libraries trail qcheck))
 
 (test
-  (name multi_frame_test)
-  (modules multi_frame_test)
-  (libraries trail alcotest))
+ (name multi_frame_test)
+ (modules multi_frame_test)
+ (libraries trail alcotest))

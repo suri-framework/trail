@@ -8,13 +8,13 @@ license: "MIT"
 tags: [
   "composable" "web framework" "http" "websockets" "ws" "riot" "multicore"
 ]
-homepage: "https://github.com/leostera/trail"
-bug-reports: "https://github.com/leostera/trail/issues"
+homepage: "https://github.com/suri-framework/trail"
+bug-reports: "https://github.com/suri-framework/trail/issues"
 depends: [
   "mdx" {with-test & >= "2.3.1"}
   "ocaml" {>= "5.1.0"}
   "magic-mime" {>= "1.3.1"}
-  "riot" {>= "0.0.8"}
+  "riot" {>= "0.0.1"}
   "trail" {>= "0.0.1"}
   "crunch" {>= "3.3.1"}
   "melange"
@@ -35,4 +35,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/leostera/trail.git"
+dev-repo: "git+https://github.com/suri-framework/trail.git"
