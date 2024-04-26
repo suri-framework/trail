@@ -41,7 +41,7 @@ let make adapter conn (req : Request.t) =
     chunked = false;
     headers = [];
     meth = req.meth;
-    path = Uri.to_string req.uri;
+    path = Uri.path req.uri;
     params = [];
     peer;
     req;
