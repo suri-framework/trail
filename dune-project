@@ -46,6 +46,7 @@
   (riot (>= "0.0.1"))
   (trail (>= "0.0.1"))
   (crunch (>= "3.3.1"))
+  (serde_derive (>= "0.0.1"))
   melange
   dune)
  (sites (share static))
